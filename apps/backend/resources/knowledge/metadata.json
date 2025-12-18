@@ -1,0 +1,32 @@
+[
+  {
+    "id": "programma-generale-chirurgia",
+    "file": "evento_generale.md",
+    "title": "Congresso Demo di Chirurgia Generale – Programma e logistica",
+    "tags": [
+      "programma",
+      "orari",
+      "ecm",
+      "sale",
+      "bagni",
+      "logistica",
+      "mappa"
+    ],
+    "summary": "Congresso medico di chirurgia generale di 3 giorni con 18 crediti ECM. Include programma dettagliato, informazioni sui crediti ECM, logistica della sede (bagni, wi-fi, guardaroba, catering) e una piantina schematica delle sale."
+  },
+  {
+    "id": "piantina-centro-congressi-demo",
+    "file": "piantina_centro_congressi_demo.md",
+    "title": "Piantina Centro Congressi San Marco – schema demo",
+    "tags": [
+      "piantina",
+      "mappa",
+      "sale",
+      "bagni",
+      "logistica",
+      "orientamento",
+      "sede"
+    ],
+    "summary": "Descrizione testuale della piantina demo del Centro Congressi San Marco per il Congresso Demo di Chirurgia Generale, con indicazione di ingressi, hall, area catering, area poster, bagni, sale Aula Magna, Sala B, Sala S1 e riferimenti ai file immagine (PNG/PDF) associati."
+  }
+]
