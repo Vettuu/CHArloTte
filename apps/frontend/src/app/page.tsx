@@ -277,15 +277,12 @@ export default function Home() {
 
     try {
       setIsRecording(true);
-      const session = await ensureVoiceSession();
+      await ensureVoiceSession();
       pushMessage(
         "system",
         "Modalità voce attiva: parla pure, ti sto ascoltando.",
         "system",
       );
-      session.on("connected", () => {
-        setVoiceState("ready");
-      });
     } catch (error) {
       console.error(error);
       pushMessage(

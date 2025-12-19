@@ -66,6 +66,25 @@ Passi:
    - Apri `http://localhost:3000` per usare la UI.
    - Verifica che la chat testuale risponda, poi prova il microfono per attivare la sessione vocale.
 
+## Deploy FTP (Aruba)
+
+Per pubblicare il progetto su hosting Aruba via FTP:
+
+1. Copia `.env.deploy.example` in `.env.deploy` e compila le credenziali FTP + directory remota.
+2. Prepara i file produzione:
+   - `apps/backend/.env.production` con chiavi OpenAI e DB MySQL Aruba.
+   - `apps/frontend/.env.production` con eventuali variabili `NEXT_PUBLIC_*` (es. `NEXT_PUBLIC_BASE_PATH=/charlotte` se il sito non è alla root del dominio).
+3. Costruisci e sincronizza:
+   ```bash
+   bash scripts/deploy_ftp.sh          # build + upload backend/frontend
+   # oppure
+   bash scripts/deploy_ftp.sh --dry-run
+   ```
+   Lo script genera `dist/backend` (composer install --no-dev) e `dist/frontend` (Next export) e li carica rispettivamente su `$FTP_REMOTE_DIR/backend` e `$FTP_REMOTE_DIR/frontend`.
+4. Configura sul server un `.htaccess`/routing che punti la root pubblica alla cartella `frontend` (lato Aruba puoi mantenere il tuo `.htaccess` esistente).
+
+Per dettagli e note su database/migrazioni consulta [DEPLOY_FTP.md](DEPLOY_FTP.md).
+
 ## Estensioni suggerite
 
 - Registrare nuovi tool (es. `sponsors.list`, `faq.transport`) aggiornando `KnowledgeService`.

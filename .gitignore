@@ -9,6 +9,9 @@ apps/frontend/.vercel
 npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+dist
+dist.zip
+dist/**/*.zip
 
 # PHP / Laravel artifacts
 vendor
@@ -21,9 +24,13 @@ apps/backend/storage/framework/cache
 apps/backend/storage/framework/sessions
 apps/backend/storage/framework/views
 apps/backend/storage/framework/testing
+apps/backend/storage/framework/cache/data
 apps/backend/storage/app/public
+apps/backend/storage/app/private
 apps/backend/public/storage
 apps/backend/.phpunit.result.cache
+apps/backend/storage/debugbar
+apps/backend/storage/logs/*.log
 
 # Databases & temp files
 *.sqlite
@@ -34,7 +41,12 @@ apps/backend/.phpunit.result.cache
 # Environment & IDE
 .env
 apps/backend/.env
+apps/backend/.env.production
 apps/frontend/.env.local
+apps/frontend/.env.production
+.env.deploy
+.env.production
+.env.development
 .env.local
 .env.production
 .env.development
