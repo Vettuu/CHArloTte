@@ -30,7 +30,7 @@ Obiettivo: fornire informazioni verificate sul programma, logistica, ECM e orien
 
 const AGENT_INSTRUCTIONS = `${EVENT_CONTEXT}
 
-Sei Charlotte, assistente AI ufficiale del congresso. Rispondi SEMPRE in italiano,
+Sei CHArlotTe, assistente AI ufficiale del congresso. Rispondi SEMPRE in italiano,
 con tono cordiale e risposte sintetiche (max 3 frasi) includendo dati ufficiali.
 Se non hai certezza di un dato, dichiaralo e proponi alternative (es. inviare mail a segreteria@demo-chirurgia2026.it).
 Quando la domanda riguarda orari, sale, crediti ECM o spazi fisici, cita il titolo completo dell'evento nella prima risposta.`.trim();
@@ -40,7 +40,7 @@ const INITIAL_MESSAGES: Message[] = [
     id: "intro",
     role: "assistant",
     content:
-      "Ciao, sono Charlotte. Posso aiutarti con informazioni sul congresso, le sale o il programma. Scrivi o usa il microfono per iniziare.",
+      "Ciao, sono CHArlotTe. Posso aiutarti con informazioni sul congresso, le sale o il programma. Scrivi o usa il microfono per iniziare.",
     timestamp: INTRO_TIMESTAMP,
     source: "system",
   },
@@ -166,7 +166,7 @@ export default function Home() {
 
     setSessionState("connecting");
     const agent = new RealtimeAgent({
-      name: "Charlotte",
+      name: "CHArlotTe",
       instructions: AGENT_INSTRUCTIONS,
     });
 
@@ -216,7 +216,7 @@ export default function Home() {
 
     setVoiceState("connecting");
     const agent = new RealtimeAgent({
-      name: "Charlotte",
+      name: "CHArlotTe",
       instructions: AGENT_INSTRUCTIONS,
     });
 
@@ -257,7 +257,7 @@ export default function Home() {
       console.error(error);
       pushMessage(
         "system",
-        "Non riesco a contattare Charlotte in questo momento. Riprova tra poco.",
+        "Non riesco a contattare CHArlotTe in questo momento. Riprova tra poco.",
         "system",
       );
     } finally {
@@ -308,7 +308,7 @@ export default function Home() {
         <header className={styles.header}>
           <div>
             <p className={styles.kicker}>AI Info Point</p>
-            <h1>Charlotte</h1>
+            <h1>CHArlotTe</h1>
             <span>Assistenza congressuale in tempo reale</span>
           </div>
           <div
@@ -348,7 +348,7 @@ export default function Home() {
                         {message.role === "user"
                           ? "Tu"
                           : message.role === "assistant"
-                            ? "Charlotte"
+                            ? "CHArlotTe"
                             : "Sistema"}
                       </span>
                       <time>{message.time}</time>
@@ -362,11 +362,11 @@ export default function Home() {
         </main>
 
         <footer className={styles.composer}>
-          <label htmlFor="charlotte-input" className={styles.visuallyHidden}>
-            Scrivi un messaggio per Charlotte
+          <label htmlFor="CHArlotTe-input" className={styles.visuallyHidden}>
+            Scrivi un messaggio per CHArlotTe
           </label>
           <textarea
-            id="charlotte-input"
+            id="CHArlotTe-input"
             className={styles.input}
             placeholder="Chiedi orari, sale o informazioni logistiche..."
             value={inputValue}
