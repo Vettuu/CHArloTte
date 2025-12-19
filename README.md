@@ -15,17 +15,18 @@ Charlotte è un assistente AI pensato per desk informativi in congressi ed event
   - UI a pannelli: header stato, chat scrollabile, composer sempre visibile; theme coerente (gradiente, scrollbar personalizzata).
   - State management locale sincronizza history per sorgente (`text` / `voice`) con fallback messaggi di sistema.
 - **Knowledge base modulare**
-  - File Markdown/descrizioni + `metadata.json` per indicizzare contenuti.
-  - `KnowledgeService` implementa i tool `conference.general_info`, `conference.schedule_lookup`, `conference.location_lookup`, restituendo testi strutturati e dati aggiuntivi.
-  - Facile estensione: basta aggiungere file e tool definitions.
+  - File Markdown/descrizioni + `metadata.json` per indicizzare contenuti e un file opzionale `dettagli.json` per le chiavi strutturate (contatti, orari, ecc.).
+  - Indicizzazione RAG: `php artisan knowledge:index` genera chunk + embedding (model `text-embedding-3-small`) e li salva in `knowledge_chunks`. La ricerca `/api/knowledge/search` usa questi embedding per fornire al modello solo gli snippet rilevanti, con fallback deterministico per dati sensibili (nomi, telefoni).
+  - `KnowledgeService` mantiene i tool server-side esistenti (`conference.general_info`, `conference.schedule_lookup`, `conference.location_lookup`) per scenari webhook.
 
 ## Feature principali
 
 1. **Chat testuale realtime**: usa `gpt-realtime` via WebSocket mantenendo history e tool call automatiche.
 2. **Conversazione vocale**: WebRTC attiva microfono/speaker, mostra trascrizioni in chat e sincronizza le risposte audio con il log testuale.
 3. **Tool orchestration**: quando il modello richiede informazioni su agenda o location, il backend esegue il tool, logga l'evento e risponde al modello per completare la turn response.
-4. **Monitoraggio & auditing**: tutte le sessioni sono registrate in DB con metadata, status e last_event. Log strutturati su token issued / webhook processing.
-5. **Testing & configurabilità**: env `config/realtime.php` controlla parametri MVC (voce, turn detection, instructions). Test automatici (HTTP mocking, queue fake) garantiscono regressioni minime.
+4. **Semantic RAG**: endpoint `/api/knowledge/search` usa embedding per trovare i chunk migliori nella tabella `knowledge_chunks` e inietta il contesto nel prompt prima di inviare la domanda.
+5. **Monitoraggio & auditing**: tutte le sessioni sono registrate in DB con metadata, status e last_event. Log strutturati su token issued / webhook processing.
+6. **Testing & configurabilità**: env `config/realtime.php` e `config/knowledge.php` controllano modello, chunk size, ecc. Test automatici (HTTP mocking, queue fake) garantiscono regressioni minime.
 
 ## Quickstart locale
 
@@ -51,6 +52,7 @@ Passi:
    composer install
    php artisan key:generate
    php artisan migrate
+   php artisan knowledge:index   # genera gli embedding dai file in resources/knowledge
    php artisan serve --host=0.0.0.0 --port=8000
    ```
 
@@ -89,7 +91,9 @@ Per dettagli e note su database/migrazioni consulta [DEPLOY_FTP.md](DEPLOY_FTP.m
 
 - Registrare nuovi tool (es. `sponsors.list`, `faq.transport`) aggiornando `KnowledgeService`.
 - Collegare un DB esterno o CRM per arricchire le risposte prima di inviarle al modello.
+- Automatizzare l'indicizzazione (es. job schedulato che esegue `php artisan knowledge:index` quando vengono caricati nuovi file).
 - Aggiungere metriche e dashboard (es. Horizon, Prometheus) basandosi sui log e la tabella `realtime_sessions`.
+- In ambienti senza shell puoi rigenerare l'indice chiamando `POST /api/knowledge/rebuild?token=...` (token definito in `KNOWLEDGE_REBUILD_TOKEN`).
 - Integrare SIP o postazioni telefoniche sfruttando lo stesso webhook / service layer.
 
 Charlotte è progettata per essere estendibile e modulare: basta aggiornare i file in `resources/knowledge`, registrare i tool e aggiungere logica server-side nel job `ProcessRealtimeWebhookJob` per coprire nuovi use case congressuali. Buon lavoro!

@@ -35,6 +35,12 @@ Questa guida spiega come pubblicare Charlotte su un hosting Aruba basato su FTP,
    php artisan migrate --force --env=production
    ```
    In alternativa importa manualmente le tabelle da `database/migrations` via phpMyAdmin.
+4. Genera l'indice della knowledge base prima del deploy:
+   ```bash
+   php artisan knowledge:index --env=production
+   ```
+   > Suggerimento: se non hai SSH sul server, esegui il comando dal tuo PC configurando `.env` con le credenziali del DB remoto (come al punto precedente) così i chunk vengono salvati direttamente nel database Aruba.
+   In alternativa, dopo aver caricato i file sul server, chiama l'endpoint `POST https://tuodominio/api/knowledge/rebuild?token=<KNOWLEDGE_REBUILD_TOKEN>` per avviare l'indicizzazione direttamente da Aruba.
 
 ## Esecuzione deploy
 

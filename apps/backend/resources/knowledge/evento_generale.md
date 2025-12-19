@@ -16,16 +16,7 @@
   - Specializzandi in chirurgia
   - Infermieri di sala operatoria (in qualità di uditori)
 - **Lingua ufficiale:** Italiano  
-- **Segreteria organizzativa Info Point AI:**
-  - Desk fisico: *Piano Terra – Hall principale, a sinistra dell’ingresso*
-  - Orari apertura desk:
-    - Giorno 1: 08:00–18:30
-    - Giorno 2: 08:00–18:30
-    - Giorno 3: 08:00–16:00
-  - Email: **segreteria@demo-chirurgia2026.it**
-  - Telefono: **+39 06 1234 5678**
-- **Numero di Roberto (responsabile):**
-  - +39 3335789101
+- **Segreteria organizzativa Info Point AI:** presidio fisico al *Piano Terra – Hall principale, lato sinistro dell’ingresso*, aperto per tutta la durata del congresso con supporto su accredito, badge e logistica. I recapiti ufficiali sono riportati nella scheda dettagli.
 
 ---
 

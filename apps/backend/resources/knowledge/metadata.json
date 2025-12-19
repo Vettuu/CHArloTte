@@ -1,7 +1,10 @@
 [
   {
     "id": "programma-generale-chirurgia",
-    "file": "evento_generale.md",
+    "file": [
+      "evento_generale.md",
+      "dettagli.json"
+    ],
     "title": "Congresso Demo di Chirurgia Generale – Programma e logistica",
     "tags": [
       "programma",

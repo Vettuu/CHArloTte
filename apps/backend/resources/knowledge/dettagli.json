@@ -1,0 +1,54 @@
+{
+  "event": {
+    "title": "Congresso Demo di Chirurgia Generale – \"Update in General Surgery\"",
+    "dates": {
+      "start": "2026-06-15",
+      "end": "2026-06-17"
+    },
+    "duration_days": 3,
+    "location": {
+      "venue": "Centro Congressi San Marco",
+      "address": "Via Roma 123, 00100 Roma",
+      "city": "Roma",
+      "country": "Italia"
+    },
+    "ecm": {
+      "credits": 18,
+      "attendance_requirement": "Presenza in aula almeno 90% delle ore",
+      "test": {
+        "delivery": "Digitale (QR code o link email)",
+        "attempts": 1,
+        "passing_score": "75% risposte corrette",
+        "deadline": "Entro 24h dal termine evento"
+      }
+    }
+  },
+  "contacts": {
+    "secretariat": {
+      "email": "segreteria@demo-chirurgia2026.it",
+      "phone": "+39 06 1234 5678",
+      "description": "Segreteria organizzativa e info point AI"
+    },
+    "info_point": {
+      "desk_location": "Piano Terra – Hall principale, lato sinistro ingresso",
+      "hours": {
+        "day1": "08:00-18:30",
+        "day2": "08:00-18:30",
+        "day3": "08:00-16:00"
+      }
+    },
+    "responsabile_info_point": {
+      "name": "Roberto Cernibori",
+      "role": "Responsabile desk info point",
+      "phone": "+39 333 578 9101"
+    }
+  },
+  "services": {
+    "wifi": {
+      "ssid": "CONGRESSO_CHIRURGIA_WIFI",
+      "password": "chirurgia2026"
+    },
+    "badge_policy": "Badge congressuale obbligatorio per accedere alle sale; in caso di smarrimento rivolgersi al desk info point con documento.",
+    "parking": "Parcheggio San Marco (100 posti, a pagamento) – accesso da uscita GRA 26 direzione Centro"
+  }
+}

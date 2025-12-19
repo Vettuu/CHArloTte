@@ -49,6 +49,12 @@ const INITIAL_MESSAGES: Message[] = [
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
 
+type KnowledgeHit = {
+  id: string;
+  title: string;
+  excerpt: string;
+};
+
 async function fetchRealtimeToken(mode: "text" | "audio") {
   const response = await fetch(`${BACKEND_URL}/api/realtime/token`, {
     method: "POST",
@@ -63,6 +69,45 @@ async function fetchRealtimeToken(mode: "text" | "audio") {
   }
 
   return response.json();
+}
+
+async function fetchKnowledgeContext(query: string): Promise<string> {
+  if (!query.trim()) {
+    return "";
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/knowledge/search`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query, limit: 3 }),
+    });
+
+    if (!response.ok) {
+      return "";
+    }
+
+    const payload = await response.json();
+    const hits: KnowledgeHit[] = Array.isArray(payload.data)
+      ? payload.data
+      : [];
+
+    if (hits.length === 0) {
+      return "";
+    }
+
+    return hits
+      .map(
+        (hit) =>
+          `Fonte: ${hit.title}\n${hit.excerpt}`
+      )
+      .join("\n\n");
+  } catch (error) {
+    console.error("Knowledge fetch failed", error);
+    return "";
+  }
 }
 
 const INTRO_MESSAGE = INITIAL_MESSAGES[0];
@@ -130,10 +175,18 @@ export default function Home() {
           .join(" ")
           .trim();
 
+        let content = textContent;
+        const contextMarker =
+          "\n\nContesto ufficiale (usalo per rispondere citando i dati):";
+
+        if (content.includes(contextMarker)) {
+          content = content.split(contextMarker)[0]?.trim() ?? content;
+        }
+
         return {
           id: `${source}-${item.itemId}`,
           role: item.role as Role,
-          content: textContent,
+          content,
           timestamp: new Date().toISOString(),
           source,
         };
@@ -248,11 +301,27 @@ export default function Home() {
 
     try {
       const session = await ensureTextSession();
+
+      const knowledge = await fetchKnowledgeContext(trimmed);
+
+      if (knowledge) {
+      session.sendMessage({
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: `${trimmed}\n\nContesto ufficiale (usalo per rispondere citando i dati):\n${knowledge}`,
+          },
+        ],
+      });
+    } else {
       session.sendMessage({
         type: "message",
         role: "user",
         content: [{ type: "input_text", text: trimmed }],
       });
+    }
     } catch (error) {
       console.error(error);
       pushMessage(
