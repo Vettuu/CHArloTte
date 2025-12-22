@@ -18,6 +18,24 @@ class OpenAIEmbeddingService
      */
     public function embedText(string $text): array
     {
+        return $this->embedBatch([$text])[0] ?? [];
+    }
+
+    /**
+     * @param  array<int, string>  $inputs
+     * @return array<int, array<int, float>>
+     */
+    public function embedBatch(array $inputs): array
+    {
+        $inputs = array_values(array_filter(array_map(
+            fn ($text) => mb_substr((string) $text, 0, 8000),
+            $inputs
+        )));
+
+        if ($inputs === []) {
+            return [];
+        }
+
         $openaiConfig = config('services.openai');
         $model = config('knowledge.embedding_model');
 
@@ -30,16 +48,19 @@ class OpenAIEmbeddingService
             ->asJson()
             ->post('https://api.openai.com/v1/embeddings', [
                 'model' => $model,
-                'input' => mb_substr($text, 0, 8000),
+                'input' => $inputs,
             ])
             ->throw();
 
-        $embedding = $response->json('data.0.embedding');
+        $data = $response->json('data');
 
-        if (! is_array($embedding)) {
+        if (! is_array($data)) {
             throw new \RuntimeException('Embedding response non valido');
         }
 
-        return array_map('floatval', $embedding);
+        return collect($data)
+            ->map(fn ($item) => array_map('floatval', $item['embedding'] ?? []))
+            ->values()
+            ->toArray();
     }
 }

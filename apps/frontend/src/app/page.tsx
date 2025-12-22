@@ -53,6 +53,7 @@ type KnowledgeHit = {
   id: string;
   title: string;
   excerpt: string;
+  score?: number;
 };
 
 async function fetchRealtimeToken(mode: "text" | "audio") {
@@ -71,9 +72,9 @@ async function fetchRealtimeToken(mode: "text" | "audio") {
   return response.json();
 }
 
-async function fetchKnowledgeContext(query: string): Promise<string> {
+async function fetchKnowledgeContext(query: string): Promise<KnowledgeHit[]> {
   if (!query.trim()) {
-    return "";
+    return [];
   }
 
   try {
@@ -86,7 +87,7 @@ async function fetchKnowledgeContext(query: string): Promise<string> {
     });
 
     if (!response.ok) {
-      return "";
+      return [];
     }
 
     const payload = await response.json();
@@ -94,23 +95,46 @@ async function fetchKnowledgeContext(query: string): Promise<string> {
       ? payload.data
       : [];
 
-    if (hits.length === 0) {
-      return "";
-    }
-
-    return hits
-      .map(
-        (hit) =>
-          `Fonte: ${hit.title}\n${hit.excerpt}`
-      )
-      .join("\n\n");
+    return hits;
   } catch (error) {
     console.error("Knowledge fetch failed", error);
-    return "";
+    return [];
   }
 }
 
 const INTRO_MESSAGE = INITIAL_MESSAGES[0];
+const SECRETARIAT_EMAIL = "segreteria@demo-chirurgia2026.it";
+const CONTEXT_MARKER = "__CHARLOTTE_CONTEXT__";
+
+function formatKnowledgeContext(hits: KnowledgeHit[]): string {
+  return hits
+    .map((hit) => {
+      const score = typeof hit.score === "number" ? ` (score ${hit.score})` : "";
+      return `Fonte: ${hit.title}${score}\n${hit.excerpt}`;
+    })
+    .join("\n\n");
+}
+
+async function sendContextInstruction(
+  session: RealtimeSession,
+  query: string,
+  hits: KnowledgeHit[],
+) {
+  const context = hits.length > 0
+    ? `${CONTEXT_MARKER} Usa esclusivamente questi estratti verificati per rispondere alla domanda "${query}":\n${formatKnowledgeContext(hits)}`
+    : `${CONTEXT_MARKER} Non hai trovato fonti affidabili per "${query}". Spiega che l'informazione non è presente nei documenti ufficiali e invita a contattare la segreteria (${SECRETARIAT_EMAIL}) per approfondimenti.`;
+
+  await session.sendMessage({
+    type: "message",
+    role: "user",
+    content: [
+      {
+        type: "input_text",
+        text: context,
+      },
+    ],
+  });
+}
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
@@ -125,6 +149,8 @@ export default function Home() {
   >("idle");
   const sessionRef = useRef<RealtimeSession | null>(null);
   const voiceSessionRef = useRef<RealtimeSession | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const processedVoiceMessages = useRef<Set<string>>(new Set());
 
   const formattedMessages = useMemo(
     () =>
@@ -146,6 +172,10 @@ export default function Home() {
     [],
   );
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [formattedMessages]);
+
   type MessagePart =
     | { type: "input_text"; text: string }
     | { type: "output_text"; text: string }
@@ -159,6 +189,10 @@ export default function Home() {
     const dynamicMessages = history
       .filter((item) => item.type === "message")
       .map((item) => {
+        if (item.role === "system") {
+          return null;
+        }
+
         const textContent = ((item.content || []) as MessagePart[])
           .map((part) => {
             if (part.type === "input_text" || part.type === "output_text") {
@@ -174,6 +208,10 @@ export default function Home() {
           })
           .join(" ")
           .trim();
+
+        if (textContent.includes(CONTEXT_MARKER)) {
+          return null;
+        }
 
         let content = textContent;
         const contextMarker =
@@ -191,7 +229,13 @@ export default function Home() {
           source,
         };
       })
-      .filter((message) => message.content.length > 0);
+      .filter((message): message is Message => {
+        if (!message) {
+          return false;
+        }
+
+        return message.content.length > 0;
+      });
 
     return dynamicMessages;
   };
@@ -210,6 +254,19 @@ export default function Home() {
       );
       return [INTRO_MESSAGE, ...merged.filter((msg) => msg.id !== "intro")];
     });
+
+    if (source === "voice") {
+      mapped
+        .filter((message) => message.role === "user" && message.content.trim())
+        .forEach((message) => {
+          if (processedVoiceMessages.current.has(message.id)) {
+            return;
+          }
+
+          processedVoiceMessages.current.add(message.id);
+          void attachContextToVoiceMessage(message.content);
+        });
+    }
   };
 
   const ensureTextSession = async (): Promise<RealtimeSession> => {
@@ -291,6 +348,20 @@ export default function Home() {
     return session;
   };
 
+  const attachContextToVoiceMessage = async (utterance: string) => {
+    if (!utterance.trim()) {
+      return;
+    }
+
+    try {
+      const session = await ensureVoiceSession();
+      const hits = await fetchKnowledgeContext(utterance);
+      await sendContextInstruction(session, utterance, hits);
+    } catch (error) {
+      console.error("Voice context enrichment failed", error);
+    }
+  };
+
   const handleSend = async () => {
     const trimmed = inputValue.trim();
     if (!trimmed) return;
@@ -302,26 +373,14 @@ export default function Home() {
     try {
       const session = await ensureTextSession();
 
-      const knowledge = await fetchKnowledgeContext(trimmed);
-
-      if (knowledge) {
-      session.sendMessage({
-        type: "message",
-        role: "user",
-        content: [
-          {
-            type: "input_text",
-            text: `${trimmed}\n\nContesto ufficiale (usalo per rispondere citando i dati):\n${knowledge}`,
-          },
-        ],
-      });
-    } else {
-      session.sendMessage({
+      await session.sendMessage({
         type: "message",
         role: "user",
         content: [{ type: "input_text", text: trimmed }],
       });
-    }
+
+      const hits = await fetchKnowledgeContext(trimmed);
+      await sendContextInstruction(session, trimmed, hits);
     } catch (error) {
       console.error(error);
       pushMessage(
@@ -340,6 +399,7 @@ export default function Home() {
       voiceSessionRef.current = null;
       setIsRecording(false);
       setVoiceState("idle");
+       processedVoiceMessages.current.clear();
       pushMessage("system", "Registrazione vocale interrotta.", "system");
       return;
     }
@@ -425,6 +485,7 @@ export default function Home() {
                     <p>{message.content}</p>
                   </li>
                 ))}
+                <div ref={messagesEndRef} />
               </ul>
             )}
           </section>

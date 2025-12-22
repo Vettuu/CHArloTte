@@ -4,6 +4,7 @@ namespace App\Knowledge;
 
 use App\Models\KnowledgeChunk;
 use App\Services\OpenAIEmbeddingService;
+use App\Support\TextNormalizer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -26,25 +27,58 @@ class KnowledgeIndexer
         foreach ($documents as $document) {
             $chunks = $this->chunkDocument($document['content'] ?? '');
 
-            foreach ($chunks as $position => $chunk) {
-                $embedding = $this->embeddings->embedText($chunk);
+            $batchSize = max((int) config('knowledge.index_batch_size', 8), 1);
+            $batches = array_chunk($chunks, $batchSize, true);
 
-                KnowledgeChunk::create([
-                    'document_id' => $document['id'],
-                    'content' => $chunk,
-                    'metadata' => [
-                        'title' => $document['title'] ?? null,
-                        'tags' => $document['tags'] ?? [],
-                        'position' => $position,
-                    ],
-                    'embedding' => $embedding,
-                ]);
+            foreach ($batches as $batch) {
+                $batchChunks = array_values($batch);
+                $batchPositions = array_keys($batch);
+                $normalized = array_map(
+                    fn ($chunk) => TextNormalizer::forEmbedding($chunk),
+                    $batchChunks
+                );
+                $embeddings = $this->embeddings->embedBatch($normalized);
 
-                $count++;
+                foreach ($batchChunks as $index => $chunk) {
+                    $position = $batchPositions[$index];
+                    $embedding = $embeddings[$index] ?? [];
+
+                    KnowledgeChunk::create([
+                        'document_id' => $document['id'],
+                        'content' => $chunk,
+                        'metadata' => [
+                            'title' => $document['title'] ?? null,
+                            'tags' => $document['tags'] ?? [],
+                            'position' => $position,
+                        ],
+                        'embedding' => $embedding,
+                        'embedding_norm' => $this->vectorNorm($embedding),
+                    ]);
+
+                    $count++;
+                }
             }
         }
 
         return $count;
+    }
+
+    /**
+     * @param  array<int, float>  $vector
+     */
+    private function vectorNorm(array $vector): ?float
+    {
+        if ($vector === []) {
+            return null;
+        }
+
+        $sum = 0.0;
+
+        foreach ($vector as $value) {
+            $sum += $value * $value;
+        }
+
+        return sqrt($sum);
     }
 
     /**

@@ -51,7 +51,8 @@ class KnowledgeSearchTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('data.0.title', 'Doc1')
-            ->assertJsonPath('data.0.excerpt', 'Programma sala A con workshop avanzato');
+            ->assertJsonPath('data.0.excerpt', 'Programma sala A con workshop avanzato')
+            ->assertJsonPath('data.0.score', 1.0);
     }
 
     public function test_it_validates_query(): void
@@ -61,5 +62,29 @@ class KnowledgeSearchTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+    }
+
+    public function test_it_returns_empty_when_score_below_threshold(): void
+    {
+        config(['knowledge.min_score' => 0.95]);
+
+        KnowledgeChunk::create([
+            'document_id' => 'doc-1',
+            'content' => 'Informazioni generali',
+            'metadata' => ['title' => 'Doc1'],
+            'embedding' => [1, 0, 0],
+        ]);
+
+        $this->mock(OpenAIEmbeddingService::class, function ($mock): void {
+            $mock->shouldReceive('embedText')
+                ->andReturn([0.5, 0.5, 0]);
+        });
+
+        $response = $this->postJson('/api/knowledge/search', [
+            'query' => 'info',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonCount(0, 'data');
     }
 }

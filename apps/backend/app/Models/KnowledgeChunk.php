@@ -14,10 +14,12 @@ class KnowledgeChunk extends Model
         'content',
         'metadata',
         'embedding',
+        'embedding_norm',
     ];
 
     protected $casts = [
         'metadata' => 'array',
         'embedding' => 'array',
+        'embedding_norm' => 'float',
     ];
 }
