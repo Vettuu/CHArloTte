@@ -7,6 +7,10 @@ use App\Http\Controllers\RealtimeToolWebhookController;
 use App\Http\Controllers\TenantConfigController;
 use App\Http\Controllers\ChatMessageLogController;
 use App\Http\Controllers\ChatReportExportController;
+use App\Http\Controllers\ChatReportKpiController;
+use App\Http\Controllers\ChatReportTenantController;
+use App\Http\Controllers\ChatReportSessionsController;
+use App\Http\Controllers\ChatReportSessionDetailController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('realtime')->group(function (): void {
@@ -22,3 +26,15 @@ Route::post('report/log', ChatMessageLogController::class)->name('report.log');
 Route::get('report/export', ChatReportExportController::class)
     ->middleware('report.auth')
     ->name('report.export');
+Route::get('report/kpi', ChatReportKpiController::class)
+    ->middleware('report.auth')
+    ->name('report.kpi');
+Route::get('report/tenants', ChatReportTenantController::class)
+    ->middleware('report.auth')
+    ->name('report.tenants');
+Route::get('report/sessions', ChatReportSessionsController::class)
+    ->middleware('report.auth')
+    ->name('report.sessions');
+Route::get('report/session/{sessionId}', ChatReportSessionDetailController::class)
+    ->middleware('report.auth')
+    ->name('report.session');
