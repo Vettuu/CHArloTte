@@ -26,6 +26,43 @@ class ChatReportSessionsController extends Controller
             $query->where('created_at', '<=', $to->endOfDay());
         }
 
+        $topicParam = trim((string) $request->query('topic', ''));
+        $topics = collect(explode(',', $topicParam))
+            ->map(fn ($item) => trim($item))
+            ->filter(fn ($item) => $item !== '')
+            ->values()
+            ->all();
+
+        $fallbackParam = $request->query('fallback');
+        $fallbackOnly = in_array((string) $fallbackParam, ['1', 'true', 'yes'], true);
+
+        if (! empty($topics)) {
+            $topicSubquery = (clone $query)
+                ->where('role', 'user')
+                ->where(function ($builder) use ($topics) {
+                    foreach ($topics as $topic) {
+                        $builder->orWhereJsonContains('metadata->topics', $topic);
+                    }
+                })
+                ->select('session_id')
+                ->distinct();
+            $query->whereIn('session_id', $topicSubquery);
+        }
+
+        if ($fallbackOnly) {
+            $fallbackSubquery = (clone $query)
+                ->where('role', 'assistant')
+                ->where(function ($builder) {
+                    $builder->where('metadata->fallback', true)
+                        ->orWhere('metadata->fallback', 'true')
+                        ->orWhere('metadata->fallback', 1)
+                        ->orWhere('metadata->fallback', '1');
+                })
+                ->select('session_id')
+                ->distinct();
+            $query->whereIn('session_id', $fallbackSubquery);
+        }
+
         $rows = (clone $query)
             ->select([
                 'session_id',

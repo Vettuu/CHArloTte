@@ -11,6 +11,7 @@ use App\Http\Controllers\ChatReportKpiController;
 use App\Http\Controllers\ChatReportTenantController;
 use App\Http\Controllers\ChatReportSessionsController;
 use App\Http\Controllers\ChatReportSessionDetailController;
+use App\Http\Controllers\ChatReportRetagController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('realtime')->group(function (): void {
@@ -38,3 +39,6 @@ Route::get('report/sessions', ChatReportSessionsController::class)
 Route::get('report/session/{sessionId}', ChatReportSessionDetailController::class)
     ->middleware('report.auth')
     ->name('report.session');
+Route::post('report/retag', ChatReportRetagController::class)
+    ->middleware('report.auth')
+    ->name('report.retag');
