@@ -15,7 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\KnowledgeIndexCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'report.auth' => \App\Http\Middleware\ReportAuth::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

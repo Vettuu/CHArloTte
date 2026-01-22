@@ -19,9 +19,11 @@ class KnowledgeSearchService
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    public function search(string $query, int $limit = 3): Collection
+    public function search(string $query, int $limit = 3, ?string $tenantId = null): Collection
     {
-        if ($structured = $this->repository->structuredLookup($query)) {
+        $tenantId = $tenantId ?? config('knowledge.default_tenant', 'demo');
+
+        if ($structured = $this->repository->structuredLookup($query, $tenantId)) {
             return collect([[
                 'id' => 'structured',
                 'title' => 'Dato ufficiale',
@@ -37,8 +39,9 @@ class KnowledgeSearchService
             return collect();
         }
 
-        $chunkQuery = KnowledgeChunk::query();
-        $candidateDocuments = $this->repository->search($query)
+        $chunkQuery = KnowledgeChunk::query()->where('tenant_id', $tenantId);
+        $keywordResults = $this->repository->search($query, $tenantId);
+        $candidateDocuments = $keywordResults
             ->pluck('id')
             ->take(5)
             ->filter();
@@ -72,6 +75,18 @@ class KnowledgeSearchService
         $topScore = $results->first()['score'] ?? null;
 
         if ($topScore === null || $topScore < $minScore) {
+            if ($keywordResults->isNotEmpty()) {
+                return $keywordResults
+                    ->take($limit)
+                    ->values()
+                    ->map(function (array $document): array {
+                        return [
+                            'id' => (string) $document['id'],
+                            'title' => $document['title'] ?? 'Knowledge',
+                            'excerpt' => trim($document['excerpt'] ?? $document['summary'] ?? ''),
+                        ];
+                    });
+            }
             return collect();
         }
 

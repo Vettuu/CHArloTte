@@ -23,7 +23,9 @@ class KnowledgeRebuildController extends Controller
             abort(Response::HTTP_FORBIDDEN, 'Token non valido.');
         }
 
-        Artisan::call('knowledge:index');
+        $tenant = $request->query('tenant') ?? $request->header('X-Knowledge-Tenant');
+        $tenant = is_string($tenant) && $tenant !== '' ? $tenant : config('knowledge.default_tenant', 'demo');
+        Artisan::call('knowledge:index', ['--tenant' => $tenant]);
 
         return response()->json([
             'status' => 'ok',

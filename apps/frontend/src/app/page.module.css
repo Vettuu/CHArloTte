@@ -5,6 +5,7 @@
 .page {
   min-height: 100vh;
   height: 100vh;
+  width: 100%;
   background: radial-gradient(circle at top, #1d2240, #0b0d1c 70%);
   display: flex;
   justify-content: center;
@@ -16,7 +17,9 @@
 
 .shell {
   width: min(960px, 100%);
+  max-width: 100%;
   height: calc(100vh - 4rem);
+  max-height: 100%;
   background: rgba(243, 244, 246, 0.95);
   border-radius: 24px;
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35);
@@ -71,6 +74,7 @@
 
 .main {
   flex: 1;
+  width: 100%;
   padding: 1.5rem 2rem;
   display: flex;
   min-height: 0;
@@ -81,6 +85,7 @@
   border-radius: 20px;
   padding: 1.5rem;
   width: 100%;
+  height: 100%;
   box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.2);
   display: flex;
   flex-direction: column;
@@ -116,6 +121,8 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .message {
@@ -199,6 +206,52 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
+.embedPage {
+  background: #fff;
+  padding: 0;
+  min-height: 100%;
+  height: 100%;
+  width: 100%;
+}
+
+.embedShell {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  background: #fff;
+}
+
+.embedMain {
+  padding: 0;
+  width: 100%;
+}
+
+.embedChatPane {
+  border-radius: 0;
+  box-shadow: none;
+  background: #fff;
+  padding: 1rem;
+  height: 100%;
+}
+
+.embedComposer {
+  padding: 1rem;
+  background: #fff;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 1024px) {
+  .actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .actions button {
+    width: auto;
+  }
+}
+
 .actions {
   display: flex;
   gap: 0.75rem;
@@ -257,27 +310,4 @@
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   border: 0;
-}
-
-@media (max-width: 768px) {
-  .shell {
-    height: calc(100vh - 2rem);
-  }
-
-  .header,
-  .main,
-  .composer {
-    padding: 1.25rem;
-  }
-
-  .actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .sendButton,
-  .micButton {
-    width: 100%;
-    justify-content: center;
-  }
 }

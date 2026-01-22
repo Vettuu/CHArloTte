@@ -16,6 +16,7 @@ class KnowledgeSearchRequest extends FormRequest
         return [
             'query' => ['required', 'string', 'min:2', 'max:500'],
             'limit' => ['sometimes', 'integer', 'min:1', 'max:10'],
+            'tenant' => ['sometimes', 'string', 'max:64'],
         ];
     }
 }

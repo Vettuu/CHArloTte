@@ -10,6 +10,7 @@ class KnowledgeChunk extends Model
     use HasFactory;
 
     protected $fillable = [
+        'tenant_id',
         'document_id',
         'content',
         'metadata',

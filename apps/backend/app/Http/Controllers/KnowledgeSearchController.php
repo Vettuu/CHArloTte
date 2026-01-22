@@ -16,7 +16,8 @@ class KnowledgeSearchController extends Controller
     {
         $results = $this->search->search(
             $request->string('query')->toString(),
-            $request->integer('limit', 3)
+            $request->integer('limit', 3),
+            $request->string('tenant')->toString() ?: null,
         );
 
         return response()->json(['data' => $results]);

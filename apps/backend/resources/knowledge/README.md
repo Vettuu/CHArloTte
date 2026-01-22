@@ -1,15 +1,21 @@
-# Archivio conoscenza Info Point AI
+# Knowledge base (multi-tenant)
 
-Posiziona qui tutti i file testuali o descrizioni di immagini utili alle risposte dell'assistente.
+Struttura consigliata:
 
-- I file di testo possono essere Markdown, txt o JSON.
-- Le immagini possono essere accompagnate da un file `.md` o `.txt` con la descrizione da usare durante la generazione della risposta.
-- Il file `metadata.json` mantiene l'elenco dei documenti disponibili per semplificare l'indicizzazione.
+```
+resources/knowledge/<tenant_id>/metadata.json
+resources/knowledge/<tenant_id>/*.md
+resources/knowledge/<tenant_id>/*.json
+```
 
-Esegui il comando di build dell'indice ogni volta che aggiorni i contenuti.
+Esempio tenant demo:
+```
+resources/knowledge/demo/metadata.json
+resources/knowledge/demo/evento_generale.md
+resources/knowledge/demo/dettagli.json
+```
 
-
-# Come aggiornare le informazioni del modello
-
-cd backend
-php artisan app:build-knowledge-index
+Rigenera l’indice per un tenant specifico:
+```
+php artisan knowledge:index --tenant=demo
+```

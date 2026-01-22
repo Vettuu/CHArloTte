@@ -15,6 +15,7 @@ class KnowledgeSearchTest extends TestCase
     {
         $response = $this->postJson('/api/knowledge/search', [
             'query' => 'nome responsabile',
+            'tenant' => 'demo',
         ]);
 
         $response->assertOk()
@@ -26,6 +27,7 @@ class KnowledgeSearchTest extends TestCase
         KnowledgeChunk::query()->delete();
 
         KnowledgeChunk::create([
+            'tenant_id' => 'demo',
             'document_id' => 'doc-1',
             'content' => 'Programma sala A con workshop avanzato',
             'metadata' => ['title' => 'Doc1'],
@@ -33,6 +35,7 @@ class KnowledgeSearchTest extends TestCase
         ]);
 
         KnowledgeChunk::create([
+            'tenant_id' => 'demo',
             'document_id' => 'doc-2',
             'content' => 'Programma sala B',
             'metadata' => ['title' => 'Doc2'],
@@ -47,6 +50,7 @@ class KnowledgeSearchTest extends TestCase
         $response = $this->postJson('/api/knowledge/search', [
             'query' => 'programma workshop sala A',
             'limit' => 1,
+            'tenant' => 'demo',
         ]);
 
         $response->assertOk()
@@ -69,6 +73,7 @@ class KnowledgeSearchTest extends TestCase
         config(['knowledge.min_score' => 0.95]);
 
         KnowledgeChunk::create([
+            'tenant_id' => 'demo',
             'document_id' => 'doc-1',
             'content' => 'Informazioni generali',
             'metadata' => ['title' => 'Doc1'],
@@ -82,6 +87,7 @@ class KnowledgeSearchTest extends TestCase
 
         $response = $this->postJson('/api/knowledge/search', [
             'query' => 'info',
+            'tenant' => 'demo',
         ]);
 
         $response->assertOk()

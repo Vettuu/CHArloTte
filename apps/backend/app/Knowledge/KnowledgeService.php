@@ -13,10 +13,12 @@ class KnowledgeService
 
     public function handle(string $toolName, array $payload = []): ToolResponse
     {
+        $tenantId = $payload['tenant'] ?? config('knowledge.default_tenant', 'demo');
+
         return match ($toolName) {
-            'conference.general_info' => $this->generalInfo($payload),
-            'conference.schedule_lookup' => $this->scheduleLookup($payload),
-            'conference.location_lookup' => $this->locationLookup($payload),
+            'conference.general_info' => $this->generalInfo($payload, $tenantId),
+            'conference.schedule_lookup' => $this->scheduleLookup($payload, $tenantId),
+            'conference.location_lookup' => $this->locationLookup($payload, $tenantId),
             default => new ToolResponse(
                 tool: $toolName,
                 text: 'Spiacente, non ho trovato informazioni per la tua richiesta.',
@@ -24,9 +26,9 @@ class KnowledgeService
         };
     }
 
-    private function generalInfo(array $payload): ToolResponse
+    private function generalInfo(array $payload, string $tenantId): ToolResponse
     {
-        $document = $this->repository->find('programma-generale-chirurgia');
+        $document = $this->repository->find('programma-generale-chirurgia', $tenantId);
 
         $topic = Str::lower($payload['topic'] ?? '');
         $content = $document['content'] ?? '';
@@ -46,9 +48,9 @@ class KnowledgeService
         );
     }
 
-    private function scheduleLookup(array $payload): ToolResponse
+    private function scheduleLookup(array $payload, string $tenantId): ToolResponse
     {
-        $document = $this->repository->find('programma-generale-chirurgia');
+        $document = $this->repository->find('programma-generale-chirurgia', $tenantId);
         $content = $document['content'] ?? '';
         $target = $payload['query'] ?? '';
 
@@ -73,9 +75,9 @@ class KnowledgeService
         );
     }
 
-    private function locationLookup(array $payload): ToolResponse
+    private function locationLookup(array $payload, string $tenantId): ToolResponse
     {
-        $document = $this->repository->find('piantina-centro-congressi-demo');
+        $document = $this->repository->find('piantina-centro-congressi-demo', $tenantId);
         $content = $document['content'] ?? '';
 
         $place = Str::lower($payload['place'] ?? '');

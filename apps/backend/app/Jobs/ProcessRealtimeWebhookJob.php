@@ -28,7 +28,13 @@ class ProcessRealtimeWebhookJob implements ShouldQueue
         Log::info('Processing realtime webhook event', $this->payload);
 
         if (! empty($this->payload['tool_name']) && ! empty($this->payload['session_id']) && ! empty($this->payload['call_id'])) {
-            $response = $knowledge->handle($this->payload['tool_name'], $this->payload['payload'] ?? []);
+            $toolPayload = $this->payload['payload'] ?? [];
+            if (! isset($toolPayload['tenant'])) {
+                $session = RealtimeSession::where('session_id', $this->payload['session_id'])->first();
+                $toolPayload['tenant'] = $session?->metadata['tenant'] ?? config('knowledge.default_tenant', 'demo');
+            }
+
+            $response = $knowledge->handle($this->payload['tool_name'], $toolPayload);
 
             Log::info('Tool response prepared', $response->toArray());
 

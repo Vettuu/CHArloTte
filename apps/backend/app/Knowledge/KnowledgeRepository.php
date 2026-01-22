@@ -14,22 +14,23 @@ class KnowledgeRepository
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    public function all(): Collection
+    public function all(?string $tenantId = null): Collection
     {
         $this->structuredData = [];
+        $tenantId = $tenantId ?? config('knowledge.default_tenant', 'demo');
 
         $metadata = collect(json_decode(
-            File::get(resource_path('knowledge/metadata.json')),
+            File::get(resource_path('knowledge/'.$tenantId.'/metadata.json')),
             true,
             flags: JSON_THROW_ON_ERROR
         ));
 
-        return $metadata->map(function (array $entry): array {
+        return $metadata->map(function (array $entry) use ($tenantId): array {
             $files = $entry['file'];
             $files = is_array($files) ? $files : [$files];
 
             $content = collect($files)
-                ->map(fn ($file) => $this->loadContent($file))
+                ->map(fn ($file) => $this->loadContent($file, $tenantId))
                 ->filter()
                 ->implode("\n\n");
 
@@ -43,9 +44,9 @@ class KnowledgeRepository
         });
     }
 
-    public function find(string $id): ?array
+    public function find(string $id, ?string $tenantId = null): ?array
     {
-        return $this->all()->firstWhere('id', $id);
+        return $this->all($tenantId)->firstWhere('id', $id);
     }
 
     /**
@@ -53,13 +54,14 @@ class KnowledgeRepository
      *
      * @return Collection<int, array<string, mixed>>
      */
-    public function search(string $query): Collection
+    public function search(string $query, ?string $tenantId = null): Collection
     {
         $query = trim($query);
 
         if ($query === '') {
             return collect();
         }
+        $tenantId = $tenantId ?? config('knowledge.default_tenant', 'demo');
 
         $normalizedQuery = $this->normalize($query);
 
@@ -67,7 +69,7 @@ class KnowledgeRepository
             $normalizedQuery = mb_strtolower($query);
         }
         $tokens = $this->expandTokens($this->tokenize($normalizedQuery));
-        $documents = $this->all();
+        $documents = $this->all($tenantId);
 
         $summaryMatches = $documents
             ->filter(function (array $document) use ($tokens, $normalizedQuery): bool {
@@ -186,16 +188,17 @@ class KnowledgeRepository
         return $tokens->every(fn (string $token): bool => str_contains($haystack, $token));
     }
 
-    public function structuredLookup(string $query): ?string
+    public function structuredLookup(string $query, ?string $tenantId = null): ?string
     {
         $normalized = $this->normalize($query);
 
         if ($normalized === '') {
             return null;
         }
+        $tenantId = $tenantId ?? config('knowledge.default_tenant', 'demo');
 
         if ($this->structuredData === []) {
-            $this->all();
+            $this->all($tenantId);
         }
 
         $tokens = $this->expandTokens($this->tokenize($normalized));
@@ -250,9 +253,9 @@ class KnowledgeRepository
         return null;
     }
 
-    private function loadContent(string $relativePath): ?string
+    private function loadContent(string $relativePath, string $tenantId): ?string
     {
-        $path = resource_path('knowledge/'.$relativePath);
+        $path = resource_path('knowledge/'.$tenantId.'/'.$relativePath);
 
         if (! File::exists($path)) {
             return null;

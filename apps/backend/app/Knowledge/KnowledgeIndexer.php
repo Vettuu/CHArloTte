@@ -17,11 +17,12 @@ class KnowledgeIndexer
     ) {
     }
 
-    public function rebuild(): int
+    public function rebuild(?string $tenantId = null): int
     {
-        DB::table('knowledge_chunks')->truncate();
+        $tenantId = $tenantId ?? config('knowledge.default_tenant', 'demo');
+        DB::table('knowledge_chunks')->where('tenant_id', $tenantId)->delete();
 
-        $documents = $this->repository->all();
+        $documents = $this->repository->all($tenantId);
         $count = 0;
 
         foreach ($documents as $document) {
@@ -44,6 +45,7 @@ class KnowledgeIndexer
                     $embedding = $embeddings[$index] ?? [];
 
                     KnowledgeChunk::create([
+                        'tenant_id' => $tenantId,
                         'document_id' => $document['id'],
                         'content' => $chunk,
                         'metadata' => [

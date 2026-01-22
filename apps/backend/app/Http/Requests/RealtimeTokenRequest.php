@@ -16,6 +16,7 @@ class RealtimeTokenRequest extends FormRequest
         return [
             'mode' => ['sometimes', 'in:audio,text'],
             'metadata' => ['sometimes', 'array'],
+            'metadata.tenant' => ['sometimes', 'string', 'max:64'],
             'session' => ['sometimes', 'array'],
             'session.type' => ['sometimes', 'in:realtime,transcription'],
             'session.model' => ['sometimes', 'string'],

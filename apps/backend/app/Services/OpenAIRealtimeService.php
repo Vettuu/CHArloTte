@@ -31,10 +31,9 @@ class OpenAIRealtimeService
             $session['output_modalities'] = [Arr::first($session['output_modalities'])];
         }
 
-        $payload = array_filter([
+        $payload = [
             'session' => $session,
-            'metadata' => $metadata,
-        ]);
+        ];
 
         $request = $this->http->withToken($openaiConfig['api_key'])
             ->withHeaders(array_filter([

@@ -19,32 +19,18 @@ type Message = {
   content: string;
   timestamp: string;
   source: MessageSource;
+  isLocal?: boolean;
 };
 
 const INTRO_TIMESTAMP = "2026-06-15T08:00:00.000Z";
 
-const EVENT_CONTEXT = `Evento: Congresso Demo di Chirurgia Generale – "Update in General Surgery".
-Date: 15–17 giugno 2026, Roma (Centro Congressi San Marco, Via Roma 123).
-Desk Info Point AI: piano terra hall principale, orari 08:00–18:30 (ult. giorno 16:00).
-Obiettivo: fornire informazioni verificate sul programma, logistica, ECM e orientamento.`.trim();
-
-const AGENT_INSTRUCTIONS = `${EVENT_CONTEXT}
-
-Sei CHArlotTe, assistente AI ufficiale del congresso. Rispondi SEMPRE in italiano,
+const DEFAULT_AGENT_INSTRUCTIONS = `Sei CHArlotTe. Rispondi SEMPRE in italiano,
 con tono cordiale e risposte sintetiche (max 3 frasi) includendo dati ufficiali.
-Se non hai certezza di un dato, dichiaralo e proponi alternative (es. inviare mail a segreteria@demo-chirurgia2026.it).
-Quando la domanda riguarda orari, sale, crediti ECM o spazi fisici, cita il titolo completo dell'evento nella prima risposta.`.trim();
+Se non hai certezza di un dato, dichiaralo e proponi alternative.`
+  .trim();
 
-const INITIAL_MESSAGES: Message[] = [
-  {
-    id: "intro",
-    role: "assistant",
-    content:
-      "Ciao, sono CHArlotTe. Posso aiutarti con informazioni sul congresso, le sale o il programma. Scrivi o usa il microfono per iniziare.",
-    timestamp: INTRO_TIMESTAMP,
-    source: "system",
-  },
-];
+const DEFAULT_INTRO_MESSAGE =
+  "Ciao, sono CHArlotTe. Posso aiutarti con informazioni utili. Scrivi o usa il microfono per iniziare.";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
@@ -56,13 +42,25 @@ type KnowledgeHit = {
   score?: number;
 };
 
-async function fetchRealtimeToken(mode: "text" | "audio") {
+type TenantConfig = {
+  id: string;
+  name?: string;
+  intro_message?: string | null;
+  support_email?: string | null;
+  fallback_message?: string | null;
+  instructions?: string | null;
+};
+
+async function fetchRealtimeToken(mode: "text" | "audio", tenant?: string) {
   const response = await fetch(`${BACKEND_URL}/api/realtime/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ mode }),
+    body: JSON.stringify({
+      mode,
+      metadata: tenant ? { tenant } : undefined,
+    }),
   });
 
   if (!response.ok) {
@@ -72,7 +70,7 @@ async function fetchRealtimeToken(mode: "text" | "audio") {
   return response.json();
 }
 
-async function fetchKnowledgeContext(query: string): Promise<KnowledgeHit[]> {
+async function fetchKnowledgeContext(query: string, tenant?: string): Promise<KnowledgeHit[]> {
   if (!query.trim()) {
     return [];
   }
@@ -83,7 +81,11 @@ async function fetchKnowledgeContext(query: string): Promise<KnowledgeHit[]> {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query, limit: 3 }),
+      body: JSON.stringify({
+        query,
+        limit: 5,
+        tenant,
+      }),
     });
 
     if (!response.ok) {
@@ -102,9 +104,45 @@ async function fetchKnowledgeContext(query: string): Promise<KnowledgeHit[]> {
   }
 }
 
-const INTRO_MESSAGE = INITIAL_MESSAGES[0];
-const SECRETARIAT_EMAIL = "segreteria@demo-chirurgia2026.it";
 const CONTEXT_MARKER = "__CHARLOTTE_CONTEXT__";
+
+async function logChatMessage(payload: {
+  sessionId: string;
+  tenantId: string;
+  messageId: string;
+  role: "user" | "assistant";
+  content: string;
+  source: MessageSource;
+  timestamp: string;
+}) {
+  try {
+    await fetch(`${BACKEND_URL}/api/report/log`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        session_id: payload.sessionId,
+        tenant_id: payload.tenantId,
+        message_id: payload.messageId,
+        role: payload.role,
+        content: payload.content,
+        source: payload.source,
+        timestamp: payload.timestamp,
+      }),
+    });
+  } catch (error) {
+    console.warn("Report log failed", error);
+  }
+}
+
+const buildIntroMessage = (content: string): Message => ({
+  id: "intro",
+  role: "assistant",
+  content,
+  timestamp: INTRO_TIMESTAMP,
+  source: "system",
+});
 
 function formatKnowledgeContext(hits: KnowledgeHit[]): string {
   return hits
@@ -119,10 +157,15 @@ async function sendContextInstruction(
   session: RealtimeSession,
   query: string,
   hits: KnowledgeHit[],
+  supportEmail?: string | null,
+  fallbackMessage?: string | null,
 ) {
+  const fallbackContact = supportEmail
+    ? `Invita a contattare ${supportEmail} per approfondimenti.`
+    : "Invita a richiedere un contatto per ulteriori dettagli.";
   const context = hits.length > 0
     ? `${CONTEXT_MARKER} Usa esclusivamente questi estratti verificati per rispondere alla domanda "${query}":\n${formatKnowledgeContext(hits)}`
-    : `${CONTEXT_MARKER} Non hai trovato fonti affidabili per "${query}". Spiega che l'informazione non è presente nei documenti ufficiali e invita a contattare la segreteria (${SECRETARIAT_EMAIL}) per approfondimenti.`;
+    : `${CONTEXT_MARKER} Non hai trovato fonti affidabili per "${query}". ${fallbackMessage ? `Puoi usare questo messaggio generale: "${fallbackMessage}".` : "Spiega che l'informazione non è presente nei documenti ufficiali."} ${fallbackContact}`;
 
   await session.sendMessage({
     type: "message",
@@ -137,7 +180,12 @@ async function sendContextInstruction(
 }
 
 export default function Home() {
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [isEmbed, setIsEmbed] = useState(false);
+  const [tenantId, setTenantId] = useState<string | null>(null);
+  const [tenantConfig, setTenantConfig] = useState<TenantConfig | null>(null);
+  const [tenantResolved, setTenantResolved] = useState(false);
+  const [introMessage, setIntroMessage] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -148,9 +196,13 @@ export default function Home() {
     "idle" | "connecting" | "ready" | "error"
   >("idle");
   const sessionRef = useRef<RealtimeSession | null>(null);
+  const sessionPromiseRef = useRef<Promise<RealtimeSession> | null>(null);
   const voiceSessionRef = useRef<RealtimeSession | null>(null);
+  const voiceSessionPromiseRef = useRef<Promise<RealtimeSession> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const processedVoiceMessages = useRef<Set<string>>(new Set());
+  const textSessionIdRef = useRef<string | null>(null);
+  const loggedMessageIds = useRef<Set<string>>(new Set());
 
   const formattedMessages = useMemo(
     () =>
@@ -164,6 +216,7 @@ export default function Home() {
     [messages],
   );
 
+
   useEffect(
     () => () => {
       sessionRef.current?.close();
@@ -171,6 +224,58 @@ export default function Home() {
     },
     [],
   );
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    setIsEmbed(params.get("embed") === "1");
+    setTenantId(params.get("tenant"));
+    setTenantResolved(true);
+  }, []);
+
+  useEffect(() => {
+    if (!tenantResolved) {
+      return;
+    }
+    const controller = new AbortController();
+    const tenantParam = tenantId ? `?tenant=${encodeURIComponent(tenantId)}` : "";
+
+    fetch(`${BACKEND_URL}/api/tenant/config${tenantParam}`, {
+      signal: controller.signal,
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        const config = payload?.tenant as TenantConfig | undefined;
+        if (!config) {
+          setIntroMessage((prev) => prev ?? DEFAULT_INTRO_MESSAGE);
+          return;
+        }
+        setTenantConfig(config);
+        setIntroMessage(config.intro_message ?? DEFAULT_INTRO_MESSAGE);
+      })
+      .catch(() => {
+        setIntroMessage((prev) => prev ?? DEFAULT_INTRO_MESSAGE);
+      });
+
+    return () => controller.abort();
+  }, [tenantId, tenantResolved]);
+
+  useEffect(() => {
+    if (!introMessage) {
+      return;
+    }
+    setMessages((prev) => {
+      const hasIntro = prev.some((message) => message.id === "intro");
+      if (hasIntro) {
+        return prev.map((message) =>
+          message.id === "intro" ? { ...message, content: introMessage } : message,
+        );
+      }
+      return [buildIntroMessage(introMessage), ...prev];
+    });
+  }, [introMessage]);
+
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -209,11 +314,14 @@ export default function Home() {
           .join(" ")
           .trim();
 
-        if (textContent.includes(CONTEXT_MARKER)) {
-          return null;
+        let content = textContent;
+        if (content.includes(CONTEXT_MARKER)) {
+          content = content.split(CONTEXT_MARKER)[0]?.trim() ?? "";
+          if (!content) {
+            return null;
+          }
         }
 
-        let content = textContent;
         const contextMarker =
           "\n\nContesto ufficiale (usalo per rispondere citando i dati):";
 
@@ -245,14 +353,49 @@ export default function Home() {
     source: MessageSource,
   ) => {
     const mapped = mapHistoryToMessages(history, source);
+    if (source === "text" && textSessionIdRef.current && tenantId) {
+      mapped.forEach((message) => {
+        if (message.role !== "user" && message.role !== "assistant") {
+          return;
+        }
+        if (loggedMessageIds.current.has(message.id)) {
+          return;
+        }
+        loggedMessageIds.current.add(message.id);
+        void logChatMessage({
+          sessionId: textSessionIdRef.current as string,
+          tenantId,
+          messageId: message.id,
+          role: message.role,
+          content: message.content,
+          source: message.source,
+          timestamp: message.timestamp,
+        });
+      });
+    }
     setMessages((prev) => {
-      const filtered = prev.filter((message) => message.source !== source);
-      const merged = [...filtered, ...mapped];
-      merged.sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-      );
-      return [INTRO_MESSAGE, ...merged.filter((msg) => msg.id !== "intro")];
+      const map = new Map(prev.map((message) => [message.id, message]));
+      mapped.forEach((message) => {
+        const existing = map.get(message.id);
+        map.set(message.id, existing ? { ...existing, ...message } : message);
+      });
+      let merged = Array.from(map.values());
+      if (source === "text") {
+        const confirmedUser = new Set(
+          mapped
+            .filter((message) => message.role === "user")
+            .map((message) => message.content),
+        );
+        merged = merged.filter(
+          (message) =>
+            !(
+              message.isLocal &&
+              message.role === "user" &&
+              confirmedUser.has(message.content)
+            ),
+        );
+      }
+      return merged;
     });
 
     if (source === "voice") {
@@ -273,39 +416,51 @@ export default function Home() {
     if (sessionRef.current) {
       return sessionRef.current;
     }
+    if (sessionPromiseRef.current) {
+      return sessionPromiseRef.current;
+    }
 
-    setSessionState("connecting");
-    const agent = new RealtimeAgent({
-      name: "CHArlotTe",
-      instructions: AGENT_INSTRUCTIONS,
-    });
+    const setup = async () => {
+      setSessionState("connecting");
+      const agent = new RealtimeAgent({
+        name: "CHArlotTe",
+        instructions: tenantConfig?.instructions ?? DEFAULT_AGENT_INSTRUCTIONS,
+      });
 
-    const session = new RealtimeSession(agent, {
-      transport: "websocket",
-    });
+      const session = new RealtimeSession(agent, {
+        transport: "websocket",
+      });
+      sessionRef.current = session;
 
-    session.on("history_updated", (history) => {
-      syncHistoryMessages(history, "text");
-    });
+      session.on("history_updated", (history) => {
+        syncHistoryMessages(history, "text");
+      });
 
-    session.on("error", (event) => {
-      console.error("Realtime session error", event);
-      setSessionState("error");
-    });
+      session.on("error", (event) => {
+        console.error("Realtime session error", event);
+        setSessionState("error");
+        sessionRef.current = null;
+        sessionPromiseRef.current = null;
+      });
 
-    const token = await fetchRealtimeToken("text");
+      const token = await fetchRealtimeToken("text", tenantId ?? undefined);
+      textSessionIdRef.current = token.session?.id ?? null;
+      await session.connect({ apiKey: token.value });
+      setSessionState("ready");
 
-    await session.connect({ apiKey: token.value });
-    setSessionState("ready");
-    sessionRef.current = session;
+      sessionPromiseRef.current = null;
+      return session;
+    };
 
-    return session;
+    sessionPromiseRef.current = setup();
+    return sessionPromiseRef.current;
   };
 
   const pushMessage = (
     role: Role,
     content: string,
     source: MessageSource = "text",
+    isLocal: boolean = false,
   ) => {
     setMessages((prev) => [
       ...prev,
@@ -315,6 +470,7 @@ export default function Home() {
         content,
         timestamp: new Date().toISOString(),
         source,
+        isLocal,
       },
     ]);
   };
@@ -323,29 +479,40 @@ export default function Home() {
     if (voiceSessionRef.current) {
       return voiceSessionRef.current;
     }
+    if (voiceSessionPromiseRef.current) {
+      return voiceSessionPromiseRef.current;
+    }
 
-    setVoiceState("connecting");
-    const agent = new RealtimeAgent({
-      name: "CHArlotTe",
-      instructions: AGENT_INSTRUCTIONS,
-    });
+    const setup = async () => {
+      setVoiceState("connecting");
+      const agent = new RealtimeAgent({
+        name: "CHArlotTe",
+        instructions: tenantConfig?.instructions ?? DEFAULT_AGENT_INSTRUCTIONS,
+      });
 
-    const session = new RealtimeSession(agent);
+      const session = new RealtimeSession(agent);
+      voiceSessionRef.current = session;
 
-    session.on("history_updated", (history) => {
-      syncHistoryMessages(history, "voice");
-    });
+      session.on("history_updated", (history) => {
+        syncHistoryMessages(history, "voice");
+      });
 
-    session.on("error", (event) => {
-      console.error("Voice session error", event);
-      setVoiceState("error");
-    });
+      session.on("error", (event) => {
+        console.error("Voice session error", event);
+        setVoiceState("error");
+        voiceSessionRef.current = null;
+        voiceSessionPromiseRef.current = null;
+      });
 
-    const token = await fetchRealtimeToken("audio");
-    await session.connect({ apiKey: token.value });
-    setVoiceState("ready");
-    voiceSessionRef.current = session;
-    return session;
+      const token = await fetchRealtimeToken("audio", tenantId ?? undefined);
+      await session.connect({ apiKey: token.value });
+      setVoiceState("ready");
+      voiceSessionPromiseRef.current = null;
+      return session;
+    };
+
+    voiceSessionPromiseRef.current = setup();
+    return voiceSessionPromiseRef.current;
   };
 
   const attachContextToVoiceMessage = async (utterance: string) => {
@@ -355,8 +522,14 @@ export default function Home() {
 
     try {
       const session = await ensureVoiceSession();
-      const hits = await fetchKnowledgeContext(utterance);
-      await sendContextInstruction(session, utterance, hits);
+      const hits = await fetchKnowledgeContext(utterance, tenantId ?? undefined);
+      await sendContextInstruction(
+        session,
+        utterance,
+        hits,
+        tenantConfig?.support_email,
+        tenantConfig?.fallback_message,
+      );
     } catch (error) {
       console.error("Voice context enrichment failed", error);
     }
@@ -366,21 +539,27 @@ export default function Home() {
     const trimmed = inputValue.trim();
     if (!trimmed) return;
 
-    pushMessage("user", trimmed, "text");
+    pushMessage("user", trimmed, "text", true);
     setInputValue("");
     setIsSending(true);
 
     try {
       const session = await ensureTextSession();
 
+      const hits = await fetchKnowledgeContext(trimmed, tenantId ?? undefined);
+      const fallbackContact = tenantConfig?.support_email
+        ? `Invita a contattare ${tenantConfig.support_email} per approfondimenti.`
+        : "Invita a richiedere un contatto per ulteriori dettagli.";
+      const fallbackMessage = tenantConfig?.fallback_message;
+      const contextBlock = hits.length > 0
+        ? `${CONTEXT_MARKER} Usa esclusivamente questi estratti verificati per rispondere alla domanda "${trimmed}":\n${formatKnowledgeContext(hits)}`
+        : `${CONTEXT_MARKER} Non hai trovato fonti affidabili per "${trimmed}". ${fallbackMessage ? `Puoi usare questo messaggio generale: "${fallbackMessage}".` : "Spiega che l'informazione non è presente nei documenti ufficiali."} ${fallbackContact}`;
+
       await session.sendMessage({
         type: "message",
         role: "user",
-        content: [{ type: "input_text", text: trimmed }],
+        content: [{ type: "input_text", text: `${trimmed}\n\n${contextBlock}` }],
       });
-
-      const hits = await fetchKnowledgeContext(trimmed);
-      await sendContextInstruction(session, trimmed, hits);
     } catch (error) {
       console.error(error);
       pushMessage(
@@ -432,39 +611,48 @@ export default function Home() {
   };
 
   return (
-    <div className={styles.page}>
-      <div className={styles.shell}>
-        <header className={styles.header}>
-          <div>
-            <p className={styles.kicker}>AI Info Point</p>
-            <h1>CHArlotTe</h1>
-            <span>Assistenza congressuale in tempo reale</span>
-          </div>
-          <div
-            aria-live="polite"
-            className={`${styles.status} ${isRecording ? styles.active : ""}`}
-          >
-            {isRecording
-              ? "Voce attiva"
-              : voiceState === "connecting"
-                ? "Connessione vocale..."
-                : voiceState === "error"
-                  ? "Errore voce"
-                  : sessionState === "ready"
-                    ? "Chat connessa"
-                    : sessionState === "connecting"
-                      ? "Connessione chat..."
-                      : "Voce in standby"}
-          </div>
-        </header>
+    <div className={`${styles.page} ${isEmbed ? styles.embedPage : ""}`}>
+      <div className={`${styles.shell} ${isEmbed ? styles.embedShell : ""}`}>
+        {/*!isEmbed && (
+          <header className={styles.header}>
+            <div>
+              <p className={styles.kicker}>AI Info Point</p>
+              <h1>CHArlotTe</h1>
+              <span>Assistenza congressuale in tempo reale</span>
+            </div>
+            <div
+              aria-live="polite"
+              className={`${styles.status} ${isRecording ? styles.active : ""}`}
+            >
+              {isRecording
+                ? "Voce attiva"
+                : voiceState === "connecting"
+                  ? "Connessione vocale..."
+                  : voiceState === "error"
+                    ? "Errore voce"
+                    : sessionState === "ready"
+                      ? "Chat connessa"
+                      : sessionState === "connecting"
+                        ? "Connessione chat..."
+                        : "Voce in standby"}
+            </div>
+          </header>
+        )*/}
 
-        <main className={styles.main}>
-          <section className={styles.chatPane} aria-live="polite">
+        <main
+          className={`${styles.main} ${isEmbed ? styles.embedMain : ""}`}
+        >
+          <section
+            className={`${styles.chatPane} ${isEmbed ? styles.embedChatPane : ""}`}
+            aria-live="polite"
+          >
             {formattedMessages.length === 0 ? (
-              <div className={styles.placeholder}>
-                Inizia la conversazione: digita un messaggio oppure premi il
-                microfono.
-              </div>
+              introMessage ? (
+                <div className={styles.placeholder}>
+                  Inizia la conversazione: digita un messaggio oppure premi il
+                  microfono.
+                </div>
+              ) : null
             ) : (
               <ul className={styles.messages}>
                 {formattedMessages.map((message) => (
@@ -491,7 +679,9 @@ export default function Home() {
           </section>
         </main>
 
-        <footer className={styles.composer}>
+        <footer
+          className={`${styles.composer} ${isEmbed ? styles.embedComposer : ""}`}
+        >
           <label htmlFor="CHArlotTe-input" className={styles.visuallyHidden}>
             Scrivi un messaggio per CHArlotTe
           </label>
