@@ -43,7 +43,7 @@ Elenco dei relatori e scheda personale di ogni relatore con la fotografia, la bi
 Il costo dell'app varia in base alle funzionalità e alle pagine che vengono inserite nell'app. Per un preventivo ufficiale scrivere a info@echelonitalia.it indicando data inizio/fine dell'evento, numero di partecipanti previsti, luogo dell'evento e le funzioni che si vogliono inserire nell'app scelte tra le seguenti: informazioni generali, programma/agenda, agenda personalizzata, abstract delle relazioni, lista degli sponsor, lista dei luoghi del congresso, collegamenti ai social dell'organizzatore o dell'evento, notifiche push, instant poll, domande dal pubblico, galleria fotografica, elenco relatori con biografia e fotografia, questionari e customer satisfaction, networking tra partecipanti, attestato di partecipazione, supporto AI. Oltre a queste, tante altre funzionalità e pagine potranno essere richieste.
 
 ## Formula di stima (indicativa)
-**Costo stimato = Costo funzioni base + Costo funzioni extra + Costo iPad e pc + Costo assistenza tecnica**
+**Costo stimato = Costo funzioni base + Costo funzioni extra + Costo iPad e pc + Costo assistenza tecnica + Spese escluse**
 La stima è indicativa e deve essere **SEMPRE CONFERMATA** da un commerciale che potrà anche applicare una scontistica riservata.
 
 ### Costo funzioni base

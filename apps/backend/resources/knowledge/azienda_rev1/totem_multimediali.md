@@ -1,13 +1,13 @@
 # Totem Multimediali
 
-Echelon Italia propone Totem Multimediali pensati per supportare le attivita di self registration e la gestione operativa dei partecipanti in sede di evento. Il cuore del servizio e il software eTotem, che consente di gestire diverse applicazioni direttamente tramite totem e postazioni dedicate.
+Echelon Italia propone Totem Multimediali pensati per supportare le attivita di self registration e la gestione operativa dei partecipanti in sede di evento. Il cuore del servizio è il software eTotem, che consente di gestire dtotem e postazioni gestite da personale contemporaneamente.
 
 ## Funzioni principali
 - Stampa badge con personalizzazione del nome e differenziato per tipologie.
-- Riconoscimento del partecipante da QRCode inquadrato nel totem.
-- Stampa su Badge Butterfly cartacei certificati FSC, green, senza bustine in PVC, resistenti all'acqua e allo strappo.
-- Possibilita di stampa su Eco Cards in materiale biodegradabile.
-- Invio attestato di partecipazione: tramite scansione del badge, invio immediato dell'attestato personalizzato via e-mail.
+- Riconoscimento del partecipante da QRCode inquadrato dal lettore del totem.
+- Stampa su Badge Butterfly cartacei certificati FSC, green, senza bustine in PVC, resistenti all'acqua e allo strappo
+- Possibilita di stampa su Eco Cards in materiale biodegradabile (SICOECO)
+- Invio attestato di partecipazione: tramite scansione del badge, invio immediato dell'attestato personalizzato via e-mail, oppure attestato stampato
 - Compilazione survey tramite monitor touch screen.
 - Information point con supporto AI per rispondere alle domande relative all'evento.
 

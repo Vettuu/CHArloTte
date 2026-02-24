@@ -114,6 +114,7 @@ async function logChatMessage(payload: {
   content: string;
   source: MessageSource;
   timestamp: string;
+  metadata?: Record<string, unknown>;
 }) {
   try {
     await fetch(`${BACKEND_URL}/api/report/log`, {
@@ -129,6 +130,7 @@ async function logChatMessage(payload: {
         content: payload.content,
         source: payload.source,
         timestamp: payload.timestamp,
+        metadata: payload.metadata,
       }),
     });
   } catch (error) {
@@ -189,6 +191,7 @@ export default function Home() {
   const [inputValue, setInputValue] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isAssistantThinking, setIsAssistantThinking] = useState(false);
   const [sessionState, setSessionState] = useState<
     "idle" | "connecting" | "ready" | "error"
   >("idle");
@@ -203,6 +206,8 @@ export default function Home() {
   const processedVoiceMessages = useRef<Set<string>>(new Set());
   const textSessionIdRef = useRef<string | null>(null);
   const loggedMessageIds = useRef<Set<string>>(new Set());
+  const pendingFallbackFlags = useRef<boolean[]>([]);
+  const seenAssistantIdsRef = useRef<Set<string>>(new Set());
 
   const formattedMessages = useMemo(
     () =>
@@ -353,6 +358,20 @@ export default function Home() {
     source: MessageSource,
   ) => {
     const mapped = mapHistoryToMessages(history, source);
+    if (source === "text") {
+      const newAssistantMessages = mapped.filter(
+        (message) =>
+          message.role === "assistant" &&
+          !seenAssistantIdsRef.current.has(message.id),
+      );
+      mapped
+        .filter((message) => message.role === "assistant")
+        .forEach((message) => seenAssistantIdsRef.current.add(message.id));
+
+      if (newAssistantMessages.length > 0) {
+        setIsAssistantThinking(false);
+      }
+    }
     if (source === "text" && textSessionIdRef.current && tenantId) {
       mapped.forEach((message) => {
         if (message.role !== "user" && message.role !== "assistant") {
@@ -362,6 +381,9 @@ export default function Home() {
           return;
         }
         loggedMessageIds.current.add(message.id);
+        const fallbackFlag = message.role === "assistant"
+          ? (pendingFallbackFlags.current.shift() ?? false)
+          : false;
         void logChatMessage({
           sessionId: textSessionIdRef.current as string,
           tenantId,
@@ -370,6 +392,7 @@ export default function Home() {
           content: message.content,
           source: message.source,
           timestamp: message.timestamp,
+          metadata: fallbackFlag ? { fallback: true } : undefined,
         });
       });
     }
@@ -542,11 +565,13 @@ export default function Home() {
     pushMessage("user", trimmed, "text", true);
     setInputValue("");
     setIsSending(true);
+    setIsAssistantThinking(true);
 
     try {
       const session = await ensureTextSession();
 
       const hits = await fetchKnowledgeContext(trimmed, tenantId ?? undefined);
+      pendingFallbackFlags.current.push(hits.length === 0);
       const fallbackContact = tenantConfig?.support_email
         ? `Invita a contattare ${tenantConfig.support_email} per approfondimenti.`
         : "Invita a richiedere un contatto per ulteriori dettagli.";
@@ -562,6 +587,7 @@ export default function Home() {
       });
     } catch (error) {
       console.error(error);
+      setIsAssistantThinking(false);
       pushMessage(
         "system",
         "Non riesco a contattare CHArlotTe in questo momento. Riprova tra poco.",
@@ -673,6 +699,15 @@ export default function Home() {
                     <p>{message.content}</p>
                   </li>
                 ))}
+                {isAssistantThinking ? (
+                  <li className={`${styles.message} ${styles.assistant} ${styles.typing}`}>
+                    <div className={styles.typingDots} aria-label="CHArlotTe sta scrivendo">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  </li>
+                ) : null}
                 <div ref={messagesEndRef} />
               </ul>
             )}
@@ -701,17 +736,6 @@ export default function Home() {
               disabled={!inputValue.trim() || isSending}
             >
               {isSending ? "Invio..." : "Invia"}
-            </button>
-            <button
-              type="button"
-              onClick={handleMicToggle}
-              className={`${styles.micButton} ${
-                isRecording ? styles.recording : ""
-              }`}
-              aria-pressed={isRecording}
-            >
-              <span aria-hidden="true">🎙️</span>
-              <span>{isRecording ? "Stop" : "Parla"}</span>
             </button>
           </div>
         </footer>

@@ -1,6 +1,6 @@
 [
   {
-    "id": "azienda-overview",
+    "id": "overview",
     "file": "overview.md",
     "title": "Echelon Italia - Overview aziendale",
     "tags": [
@@ -17,7 +17,7 @@
     "summary": "Profilo aziendale di Echelon Italia: societa di Roma specializzata nell'innovazione per eventi, meeting, congressi, fiere ed ECM, con oltre 20 anni di esperienza e soluzioni chiavi in mano con assistenza in sede."
   },
   {
-    "id": "azienda-servizi-intro",
+    "id": "servizi-intro",
     "file": "servizi_intro.md",
     "title": "Servizi Echelon Italia - panoramica",
     "tags": [
@@ -27,28 +27,14 @@
       "meeting",
       "congressi",
       "fiere",
-      "ecm"
+      "ecm",
+      "luoghi di attività",
+      "sedi"
     ],
     "summary": "Panoramica dei principali servizi Echelon Italia per eventi: web e registrazioni, comunicazioni, e-commerce, segreteria, accredito, badge, presenze ECM, app, votazioni, placement, eventi online, FAD, modulistica ECM, e-poster e lead retrieval."
   },
   {
-    "id": "azienda-servizi-web-registrazioni",
-    "file": "DA_CHIEDERE_servizi_web_registrazioni.md",
-    "title": "Soluzioni web, registrazioni e comunicazioni",
-    "tags": [
-      "siti web",
-      "landing page",
-      "registrazione",
-      "back-end",
-      "email",
-      "e-commerce",
-      "eventi",
-      "partecipanti"
-    ],
-    "summary": "Soluzioni web per eventi con form online, back-end organizzatore, invio massivo di email, registrazioni avanzate, QRCode e integrazione e-commerce; include supporto segreteria organizzativa."
-  },
-  {
-    "id": "azienda-siti-web-ecommerce",
+    "id": "siti-web-ecommerce",
     "file": "siti_web_ecommerce.md",
     "title": "Sito web evento, form iscrizione ed e-commerce",
     "tags": [
@@ -62,7 +48,7 @@
     "summary": "Siti web per eventi con programmi, relatori, form di iscrizione, raccolta materiali e moduli e-commerce; include back-end organizzatore, comunicazioni email e pagamenti online."
   },
   {
-    "id": "azienda-segreteria-organizzativa",
+    "id": "segreteria-organizzativa",
     "file": "segreteria organizzativa.md",
     "title": "Segreteria organizzativa",
     "tags": [
@@ -76,7 +62,7 @@
     "summary": "Servizi di segreteria organizzativa: invio massivo email, landing page, recall, back-end, help desk, invio QRCode e gestione wallet, con stime costi indicative."
   },
   {
-    "id": "azienda-accredito-ipad",
+    "id": "accredito-ipad",
     "file": "accredito_ipad.md",
     "title": "Accredito con iPad e controllo accessi",
     "tags": [
@@ -90,7 +76,7 @@
     "summary": "Accredito rapido con iPad tramite QRCode o ricerca nominativo, lista cloud aggiornata, operativita offline, gestione accompagnatori e controllo accessi anche ECM, con stima costi indicativa."
   },
   {
-    "id": "azienda-stampa-veloce-badge",
+    "id": "stampa-veloce-badge",
     "file": "stampa_veloce_badge.md",
     "title": "Stampa veloce badge on-site",
     "tags": [
@@ -105,7 +91,7 @@
     "summary": "Servizio di stampa badge on-site con postazioni e totem, QRCode per accredito veloce, materiali green e linee guida su volumi; include formula di stima indicativa."
   },
   {
-    "id": "azienda-totem-multimediali",
+    "id": "totem-multimediali",
     "file": "totem_multimediali.md",
     "title": "Totem Multimediali e software eTotem",
     "tags": [
@@ -120,7 +106,7 @@
     "summary": "Totem multimediali con software eTotem per self registration: stampa badge, QRCode, attestati, survey touch e info point con supporto AI, con assistenza tecnica in sede."
   },
   {
-    "id": "azienda-rilevazione-presenze-ecm",
+    "id": "rilevazione-presenze-ecm",
     "file": "rilevazione_presenze_ecm.md",
     "title": "Rilevazione presenze ECM con RFID/UHF",
     "tags": [
@@ -134,7 +120,7 @@
     "summary": "Rilevamento presenze ECM con portale RFID UHF hands-free, report ingressi/uscite e alternative con QRCode o iPad per controllo accessi."
   },
   {
-    "id": "azienda-gestione-posti-a-sedere",
+    "id": "gestione-posti-a-sedere",
     "file": "gestione_posti_a_sedere.md",
     "title": "Gestione posti a sedere e placement",
     "tags": [
@@ -148,7 +134,7 @@
     "summary": "Software con mappa sala per assegnazione posti, modifiche last-minute, stampa posto sul badge ed export Excel; include controllo accessi con QRCode."
   },
   {
-    "id": "azienda-app-interattiva-evento",
+    "id": "app-interattiva-evento",
     "file": "app_interattiva_evento.md",
     "title": "App interattiva evento",
     "tags": [
@@ -163,7 +149,7 @@
     "summary": "App evento nativa personalizzata con contenuti e funzioni interattive: networking, notifiche push, Q&A, instant poll, supporto AI, programma per topic, agenda, attestati e costi con formula indicativa."
   },
   {
-    "id": "azienda-votazioni-televoto",
+    "id": "votazioni-televoto",
     "file": "votazioni_televoto.md",
     "title": "Votazioni con telecomandi (televoto)",
     "tags": [
@@ -176,7 +162,7 @@
     "summary": "Sistema di televotazione con telecomandi per votazioni in aula, risultati in tempo reale e integrazione nelle slide; adatto a mozioni, bilanci e sondaggi."
   },
   {
-    "id": "azienda-e-vote-elezioni",
+    "id": "e-vote-elezioni",
     "file": "e_vote_elezioni.md",
     "title": "E-vote per elezioni online e on-site",
     "tags": [
@@ -190,20 +176,7 @@
     "summary": "Seggio elettorale elettronico per elezioni online, on-site o miste, con credenziali personali, percorsi di voto, segretezza del voto e scrutinio immediato."
   },
   {
-    "id": "azienda-eventi-online-streaming",
-    "file": "DA_CHIEDERE_eventi_online_streaming.md",
-    "title": "Eventi online, videoconferenze e streaming",
-    "tags": [
-      "eventi online",
-      "streaming",
-      "videoconferenza",
-      "regia",
-      "zoom"
-    ],
-    "summary": "Supporto a eventi online con piattaforme di videoconferenza e streaming, siti protetti da password, regia audio/video e grafica personalizzata."
-  },
-  {
-    "id": "azienda-piattaforma-fad",
+    "id": "piattaforma-fad",
     "file": "piattaforma_fad.md",
     "title": "Piattaforma FAD ECM",
     "tags": [
@@ -217,7 +190,7 @@
     "summary": "Piattaforma FAD ECM per formazione sincrona e asincrona con gestione eventi, SCORM, webinar, e-commerce e Zoom integrato."
   },
   {
-    "id": "azienda-modulistica-ecm-online",
+    "id": "modulistica-ecm-online",
     "file": "modulistica_ecm_online.md",
     "title": "Modulistica ECM online",
     "tags": [
@@ -231,7 +204,7 @@
     "summary": "Soluzioni online per modulistica ECM: anagrafica, questionari, report XML, controllo presenze via QRCode, attestati e supporto webinar."
   },
   {
-    "id": "azienda-raccolta-papers-eposter",
+    "id": "raccolta-papers-eposter",
     "file": "raccolta_papers_eposter.md",
     "title": "Raccolta papers ed e-poster",
     "tags": [
@@ -245,7 +218,7 @@
     "summary": "Piattaforma per raccolta e valutazione di e-poster e papers con back-end, monitor in sede, ricerca per autore e download via QRCode."
   },
   {
-    "id": "azienda-lead-retrieval-system",
+    "id": "lead-retrieval-system",
     "file": "lead_retrieval_system.md",
     "title": "Lead Retrieval System per espositori",
     "tags": [

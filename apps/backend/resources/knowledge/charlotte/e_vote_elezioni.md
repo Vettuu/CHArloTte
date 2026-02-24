@@ -13,12 +13,14 @@ Una volta effettuato l'accesso alla piattaforma, il votante troverà le votazion
 Per ogni votazione effettuata il sistema invia una email al votante con la conferma della corretta memorizzazione dei dati.
 Per ogni elezione occorre impostare una data e orario di inizio e una data e orario di fine delle votazioni; il sistema automaticamente aprirà e chiuderà la votazione a questi orari.
 Lo scrutinio è immediato, in tempo reale alla chiusura del voto, effettuato dall'ufficio di Echelon Italia, e i risultati vengono forniti su pdf ed excel, con la lista dei candidati e dei voti ricevuti, unitamente ad una dichiarazione di Echelon Italia di corretto funzionamente della piattaforma e corretto svolgimento delle votazioni.
-### 2) Nel secondo caso, solo on-site, ossia solo in presenza, presso una sede specifica, Echelon Italia, non dovendo ricorrere ad una piattaforma on-line, propone un sistema molto intuitivo e semplice da utilizzare per il votante, con postazioni di voto touch screen; il votante seleziona tramite touch screen i candidati ed esprime le sue preferenze. Le postazioni di voto touch sono poste su desk o all'interno di cabine di voto, in una sala o area dedicata alle elezioni. All'ingresso di questa sala il votante riceve un coupon con un qrcode per attivare la votazione; basta avvicinare il copuon al lettore posto nella postazione di voto e si può cominciare a votare. Il coupon sarà consegnato solo dopo avere verificato il diritto al voto del partecipante, eventualmente la regolarità del pagamento della quota associativa.
-Il qrcode presemte sul coupon di voto assicura al votante di poter effettuare la votazione in completo anonimato. Solitamente si lascia la votazione aperta per alcune ore, in base all'affluenza prevista e al numero di postazioni allestite. Echelon Italia sarà a disposizione dei votanti, per qualsiasi problematica legata alla piattaforma.
+
+### 2) Nel secondo caso, solo on-site, ossia solo in presenza, presso una sede specifica, Echelon Italia, non dovendo ricorrere ad una piattaforma on-line, propone un sistema molto intuitivo e semplice da utilizzare per il votante, con postazioni di voto con notebook in una sala o area dedicata alle elezioni. Le postazioni di voto possono essere anche, su richiesta del cliente, allestite con monitor touch all'interno di cabine di voto oppure con totem multimediali dotati di touch screem. All'ingresso di questa sala o area dedicata alle votazioni il votante riceve da un tecnico di Echelon Italia un coupon con un qrcode per attivare la votazione; basta avvicinare il coupon al lettore posto nella postazione di voto e si può cominciare a votare. Il coupon sarà consegnato solo dopo avere verificato il diritto al voto del partecipante, eventualmente la regolarità del pagamento della quota associativa.
+Il qrcode presente sul coupon di voto assicura al votante di poter effettuare la votazione in completo anonimato. Solitamente si lascia la votazione aperta per alcune ore, in base all'affluenza prevista e al numero di postazioni allestite. Echelon Italia sarà a disposizione dei votanti, per qualsiasi problematica legata alla piattaforma.
 In questo caso è previsto il voto per delega e se il votante è impossibilitato a raggiungere la sede dove si svolgono le elezioni può delegare un altro partecipante, delegato, che voterà sia per se stesso sia per il delegante.
 Il passaggio del qrcode sul lettore posto nella postazione di voto attiva la votazione, una volta soltanto, e il votante troverà le votazioni previste nel proprio percorso di voto. Ogni utente infatti potrebbe avere un percorso di voto personalizzato in base alla propria categoria, appartenenza a gruppi di studio, provenienza regionale, età e altre caratteristiche. Il votante dovrà svolgere tutte le votazioni in un unico momento, in successione; il qrcode infatti attiva la procedura di voto una volta soltanto.
 Lo scrutinio è immediato, in tempo reale alla chiusura del voto, effettuato dal personale di Echelon Italia, e i risultati vengono forniti su pdf ed excel, con la lista dei candidati e dei voti ricevuti, unitamente ad una dichiarazione di Echelon Italia di corretto funzionamente della piattaforma e corretto svolgimento delle votazioni.
-### 3) Nel terzo caso, modalità MISTA sia on-line da casa sia on-site presso una sede specifica, Echelon Italia predispone la piattaforma su un sito web dedicato e invia a tutti i partecipanti alla votazione, alla loro e-mail personale, un link alla piattaforma e le credenziali di accesso. Le credenziali di accesso sono personali e segrete e consentono al votante di effettuare la votazione in completo anonimato. Solitamente si lascia la votazione on-line aperta per alcuni giorni in modo da permettere a tutti i votanti di risolvere eventuali problematiche tecniche, come la mancanza momentanea di internet o di un computer disponibile e funzionante. Echelon Italia sarà a disposizione dei votanti attraverso una assistenza via email e telefonica, per qualsiasi problematica legata alla piattaforma e alle credenziali di accesso. Le votazioni on-site, ossia presso la sede scelta per le votazioni, in presenza, potranno essere fatte su computer allestiti da Echelon Italia e collegati a internet. Echelon Italia sarà presente in sede di votazioni per fare assistenza per qualsiasi problematica legata alla piattaforma e alle credenziali di accesso. Echelon Italia sarà anche a disposizione dei votanti che votano da casa, on-line, attraverso una assistenza via email e telefonica, per qualsiasi problematica legata alla piattaforma e alle credenziali di accesso. 
+
+### 3) Nel terzo caso, modalità MISTA sia on-line da casa sia on-site presso una sede specifica, Echelon Italia predispone la piattaforma su un sito web dedicato e invia a tutti i partecipanti alla votazione, alla loro e-mail personale, un link alla piattaforma e le credenziali di accesso. Le credenziali di accesso sono personali e segrete e consentono al votante di effettuare la votazione in completo anonimato. Solitamente si lascia la votazione on-line aperta per alcuni giorni in modo da permettere a tutti i votanti di risolvere eventuali problematiche tecniche, come la mancanza momentanea di internet o di un computer disponibile e funzionante. Echelon Italia sarà a disposizione dei votanti attraverso una assistenza via email e telefonica, per qualsiasi problematica legata alla piattaforma e alle credenziali di accesso. Le votazioni on-site, ossia presso la sede scelta per le votazioni, in presenza, potranno essere fatte su computer allestiti da Echelon Italia e collegati a internet. Le postazioni di voto possono essere anche, su richiesta del cliente, allestite con monitor touch all'interno di cabine di voto oppure con totem multimediali dotati di touch screem.  Echelon Italia sarà presente in sede di votazioni per fare assistenza per qualsiasi problematica legata alla piattaforma e alle credenziali di accesso. Echelon Italia sarà anche a disposizione dei votanti che votano da casa, on-line, attraverso una assistenza via email e telefonica, per qualsiasi problematica legata alla piattaforma e alle credenziali di accesso. 
 Anche i votanti che svolgeranno le votazioni in presenza, ossia in sede, riceveranno quindi le credenziali di accesso sulla propria email personale, inviate da Echelon Italia.
 Non è previsto il voto per delega, non sono previste deleghe, poichè la delega ha un senso solo se il votante è impossibilitato a raggiungere la sede dove si svolgono le elezioni, ma in questo caso il votante può votare anche da casa e quindi ha certamente la possibilità di votare personalmente.
 Eventuali votanti senza diritto al voto, per esempio perchè non in regola con le quote associative, saranno inseriti in pending e non potranno votare fino a quando non avranno regolrizzato la propria posizione.
@@ -62,13 +64,48 @@ Il software di Echelon Italia è stato utilizzato per le seguenti elezioni:
 - Elezioni Rinnovo Cariche Sociali ANIRCEF 2024
 
 # Costo del servizio
-Il costo dell'app varia in base alla modalità scelta
+Il costo del servizio VARIA IN BASE ALLA MODALITA' SCELTA tra le tre modalità: 
+- 1) votazioni solo on-line 
+- 2) votazioni solo on-site 
+- 3) modalità mista sia on-line sia on-site. 
+Inoltre il costo dipende dal numero di votanti, durata e luogo di svolgimento, assistenza tecnica richiesta, specifiche software. Per un preventivo ufficiale scrivere a info@echelonitalia.it indicando: modalità scelta (solo on-line, solo on-site, oppure mista sia on-line sia on-site), numero di votanti, data inizio/fine, giorno allestimento, luogo dell'evento, tipologia di votazione e specifiche del software richieste.
 
-# Costo del servizio
-Il costo del servizio VARIA IN BASE ALLA MODALITA' SCELTA tra le tre modalità: 1) solo on-line 2) solo on-site 3) modalità mista sia on-line sia on-site. Inoltre il costo dipende dal numero di votanti, durata e luogo di svolgimento, assistenza tecnica richiesta, specifiche software. Per un preventivo ufficiale scrivere a info@echelonitalia.it indicando: modalità scelta (solo on-line, solo on-site, oppure mista sia on-line sia on-site), numero di votanti, data inizio/fine, giorno allestimento, luogo dell'evento, tipologia di votazione e specifiche del software richieste.
+## Formula di stima (indicativa) per la modalità 1) votazioni solo on-line
+**Costo stimato = Costo piattaforma + Costo di assistenza tecnica on-line**
+La stima e indicativa e deve essere **SEMPRE CONFERMATA** da un commerciale che potrà anche applicare una scontistica riservata.
+Nel caso di modalità mista, on-line e on-site, Echelon Italia fa assistenza tecnica sia in sede, nei giorni nei quali sono aperti i seggi in presenza, sia on line durante i giorni nei quali sono aperti i seggi on-line.
 
-## Formula di stima (indicativa) per la modalità MISTA sia on-line sia on-site
-**Costo stimato = Costo piattaforma + Costo postazioni in sede + Costo assistenza tecnica in sede + Costo di assistenza tecnica on-line**
+### Costo piattaforma
+**Costo piattaforma = 1000 euro + (numero di votanti x 1,5 euro)** (per evento).
+Esempi: 100 votanti = 1150 euro, 1000 votanti = 2500 euro
+
+### Costo assistenza tecnica on-line
+**Costo assistenza tecnica on-line = 100 euro x giorni di assistenza** (1 tecnico). 
+Il numero di giorni di assistenza tecnica on-line corrispondono ai giorni nei quali è possibile votare on-line
+
+## Formula di stima (indicativa) per la modalità 2) votazioni solo on-site
+**Costo stimato = Costo piattaforma + Costo postazioni in sede + Costo assistenza tecnica in sede + Spese escluse**
+La stima e indicativa e deve essere **SEMPRE CONFERMATA** da un commerciale che potrà anche applicare una scontistica riservata.
+Nel caso di modalità sono on-site, Echelon Italia fa assistenza tecnica solo in sede, nei giorni nei quali sono aperti i seggi in presenza.
+
+### Costo piattaforma
+**Costo piattaforma = 1000 euro + (numero di votanti x 1,5 euro)** (per evento).
+Esempi: 100 votanti = 1150 euro, 1000 votanti = 2500 euro
+
+### Costo postazioni in sede
+**Costo postazioni in sede con pc e monitor touch screen = 400 euro a postazione di voto** (per evento).
+**Costo postazioni in sede con totem multimediali o monitor touch screen= 750 euro a postazione di voto** (per evento).
+Esempi: 1 postazione = 400 euro; 2 postazioni = 800 euro; 1 totem = 750 euro; 2 totem = 1500 euro
+
+### Costo assistenza tecnica in sede
+**Costo assistenza tecnica = 350 euro x giorni di assistenza** (1 tecnico). 
+Il numero di giorni di assistenza tecnica in sede corrispondono ai giorni nei quali è possibile votare in sede + 1 giorno di allestimento
+
+### Spese escluse
+Viaggio, vitto e alloggio **fuori Roma** sono esclusi dal calcolo e devono essere quotati da un commerciale.
+
+## Formula di stima (indicativa) per la modalità 3) modalità mista sia on-line sia on-site.
+**Costo stimato = Costo piattaforma + Costo postazioni in sede + Costo assistenza tecnica in sede + Costo di assistenza tecnica on-line + Spese escluse**
 La stima e indicativa e deve essere **SEMPRE CONFERMATA** da un commerciale che potrà anche applicare una scontistica riservata.
 Nel caso di modalità mista, on-line e on-site, Echelon Italia fa assistenza tecnica sia in sede, nei giorni nei quali sono aperti i seggi in presenza, sia on line durante i giorni nei quali sono aperti i seggi on-line.
 
@@ -77,8 +114,9 @@ Nel caso di modalità mista, on-line e on-site, Echelon Italia fa assistenza tec
 Esempi: 100 votanti = 1150 euro, 1000 votanti = 2500 euro
 
 ### Costo postazioni in sede
-**Costo postazioni in sede = 200 euro a postazione di voto** (per evento).
-Esempi: 100 votanti = 1150 euro, 1000 votanti = 2500 euro
+**Costo postazioni in sede con pc e monitor touch screen = 400 euro a postazione di voto** (per evento).
+**Costo postazioni in sede con totem multimediali o monitor touch screen= 750 euro a postazione di voto** (per evento).
+Esempi: 1 postazione = 400 euro; 2 postazioni = 800 euro; 1 totem = 750 euro; 2 totem = 1500 euro
 
 ### Costo assistenza tecnica in sede
 **Costo assistenza tecnica = 350 euro x giorni di assistenza** (1 tecnico). 

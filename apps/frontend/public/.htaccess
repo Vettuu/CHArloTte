@@ -1,0 +1,11 @@
+Options -Indexes -MultiViews
+RewriteEngine On
+RewriteBase /charlotte/
+
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+RewriteRule ^report/?$ report.html [L]
+RewriteRule ^report/index\.html$ report.html [L]
+
+RewriteRule ^ index.html [L]

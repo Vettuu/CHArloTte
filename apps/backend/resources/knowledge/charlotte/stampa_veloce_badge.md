@@ -1,5 +1,6 @@
 # Stampa veloce badge on-site
 Il servizio STAMPA DEI BADGE ON-SITE di Echelon Italia e pensato per eventi, meeting, congressi e fiere e permette di eliminare le file di attesa dei partecipanti all'arrivo in sede di evento per ritirare il badge. Il servizio può essere svolto con software di Echelon Italia, eventualmente sincronizzato con delle API con il gestionale del cliente; può anche essere svolto utilizzando il gestionale del cliente, per esempio CMS MiceSuite. La stampa del badge può essere effettuata sia con postazioni gestite da personale (hostess e steward) sia con totem multimediali, ossia postazioni self (self-registration).
+Al momento della stampa del badge il sistema registra automaticamente anche la presenza del partecipante all'evento; il sistema quindi è adatto anche per svolgere il servizio di rilevazione delle presenze, unitamente alla stampa del badge.
 
 ## Caratteristiche
 - Accredito con stampa immediata del badge, sia con postazioni gestite da personale, sia con totem multimediali
@@ -25,12 +26,11 @@ I totem velocizzano molto l'accredito dei partecipanti e la stampa dei badge gra
 Il partecipante può in ogni caso ritirare un solo badge, sia nelle postazioni self sia in quelle gestite.
 
 ## Caratteristiche dei badge, sostenibilità e materiali green
-Echelon Italia propone due soluzioni, entrambe green Eco-friendly, di badge: 1) badge green butterfly cartacei certificati Forest Stewardship Council (FSC) e 2) Eco Cards in materiale biodegradabile (SICOECO).
-Il badge puo in entrambi i casi essere personalizzato includendo:
+Echelon Italia propone due soluzioni principali, entrambe green Eco-friendly, di badge: 1) badge green butterfly cartacei certificati Forest Stewardship Council (FSC) e 2) Eco Cards in materiale biodegradabile (SICOECO). Queste due tipologie di badge sono di alta qualità, con stampa ad alta definizione, con colori resistenti e che non rilasciano colore sui tessuti, resistenti all'acqua e allo strappo. 
+Il badge può essere personalizzato includendo:
 - Codice a barre o Qr code con informazioni utili per controllo presenze e accessi.
-- Posto a sedere riservato (fila/posto stampato sul badge).
-- Fotografia del partecipante, scattata al momento dell'accredito.
-- Antenna rfid per il controllo accessi tramite portale rfid UHF
+- Posto a sedere riservato (fila/posto stampato sul badge)
+- Fotografia del partecipante, scattata al momento dell'accredito
 
 ### 1) I badge butterfly 
 I badge buttefly sono badge formato 9,5x13,5cm contenuti in un foglio A4, badge adesivi che, dopo la stampa e la personalizzazione, si staccano dal loro foglio A4 e, chiudendosi come le ali di una farfalla, vanno a formare un badge fronte/retro, già forato per clip o moschettone per laccetto portabadge. Non hanno quindi bisogno di bustina portabadge, bustina inquinante perchè il più delle volte realizzata in PVC.
