@@ -20,6 +20,8 @@ class TenantConfigController extends Controller
                 'support_email' => $tenantConfig['support_email'] ?? null,
                 'fallback_message' => $tenantConfig['fallback_message'] ?? null,
                 'instructions' => $tenantConfig['instructions'] ?? null,
+                'pipeline' => $tenantConfig['pipeline'] ?? 'realtime',
+                'chat_model' => $tenantConfig['chat_model'] ?? null,
             ],
         ]);
     }

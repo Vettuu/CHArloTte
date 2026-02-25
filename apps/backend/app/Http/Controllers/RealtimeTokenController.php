@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Chat\ChatPipelineResolver;
+use App\Chat\Exceptions\UnknownPipelineException;
+use App\Chat\Exceptions\UnsupportedPipelineOperationException;
 use App\Http\Requests\RealtimeTokenRequest;
 use App\Models\RealtimeSession;
-use App\Services\OpenAIRealtimeService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -12,32 +14,28 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RealtimeTokenController extends Controller
 {
-    public function __construct(private readonly OpenAIRealtimeService $realtime)
+    public function __construct(private readonly ChatPipelineResolver $resolver)
     {
     }
 
     public function __invoke(RealtimeTokenRequest $request): JsonResponse
     {
         $payload = $request->validated();
-        $sessionOverrides = $payload['session'] ?? [];
         $tenantId = data_get($payload, 'metadata.tenant') ?: config('tenants.default', 'demo');
         $tenantConfig = config("tenants.map.{$tenantId}") ?? config('tenants.map.'.config('tenants.default', 'demo'));
-
-        if (! empty($payload['mode'])) {
-            $sessionOverrides['output_modalities'] = [$payload['mode']];
-        }
-
-        if (! empty($tenantConfig['instructions'])) {
-            $sessionOverrides['instructions'] = $tenantConfig['instructions'];
-        }
-
-        $metadata = array_merge(
-            ['tenant' => $tenantId],
-            $payload['metadata'] ?? []
-        );
+        $pipelineKey = (string) ($tenantConfig['pipeline'] ?? 'realtime');
 
         try {
-            $result = $this->realtime->createClientSecret($sessionOverrides);
+            $pipeline = $this->resolver->resolveTokenPipeline($pipelineKey);
+            $issued = $pipeline->issueToken($payload, $tenantId, $tenantConfig);
+            $result = $issued['result'];
+            $metadata = $issued['metadata'];
+            $mode = $issued['mode'];
+        } catch (UnknownPipelineException|UnsupportedPipelineOperationException $exception) {
+            return response()->json([
+                'message' => 'Token flow not available for selected pipeline',
+                'details' => $exception->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (RequestException $exception) {
             $message = $exception->response?->json('error.message') ?? $exception->getMessage();
 
@@ -54,7 +52,7 @@ class RealtimeTokenController extends Controller
 
         RealtimeSession::create([
             'session_id' => data_get($result, 'session.id'),
-            'mode' => data_get($result, 'session.output_modalities.0', config('realtime.default_mode', 'audio')),
+            'mode' => $mode,
             'status' => 'issued',
             'session_payload' => data_get($result, 'session'),
             'metadata' => $metadata,
@@ -63,12 +61,15 @@ class RealtimeTokenController extends Controller
         Log::info('Realtime token issued', [
             'session_id' => data_get($result, 'session.id'),
             'mode' => data_get($result, 'session.output_modalities'),
+            'pipeline' => $pipelineKey,
         ]);
 
         $result['tenant'] = [
             'id' => $tenantId,
             'name' => $tenantConfig['name'] ?? $tenantId,
             'intro_message' => $tenantConfig['intro_message'] ?? null,
+            'pipeline' => $pipelineKey,
+            'chat_model' => $tenantConfig['chat_model'] ?? null,
         ];
 
         return response()->json($result, Response::HTTP_CREATED);
