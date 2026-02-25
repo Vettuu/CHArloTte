@@ -144,8 +144,13 @@ set ftp:prefer-epsv no
 mkdir -p $FTP_REMOTE_DIR/backend
 mirror -R --only-newer --delete ${DRY_ARG} "$BACKEND_DIST" "$FTP_REMOTE_DIR/backend"
 
-mkdir -p $FTP_REMOTE_DIR/frontend
-mirror -R --only-newer --delete ${DRY_ARG} "$FRONTEND_DIST" "$FTP_REMOTE_DIR/frontend"
+# Frontend static export va nella root remota (es: /charlotte/)
+# e NON dentro una sottocartella frontend/, così index.html/report.html
+# restano direttamente raggiungibili da /charlotte/.
+mirror -R --only-newer --delete \
+  --exclude-glob backend \
+  --exclude-glob "backend/*" \
+  ${DRY_ARG} "$FRONTEND_DIST" "$FTP_REMOTE_DIR"
 
 quit
 LFTP_CMDS

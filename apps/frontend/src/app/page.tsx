@@ -183,6 +183,7 @@ async function sendContextInstruction(
 
 export default function Home() {
   const [isEmbed, setIsEmbed] = useState(false);
+  const [glassMode, setGlassMode] = useState<"off" | "medium" | "liquid21" | "liquid21color">("off");
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [tenantConfig, setTenantConfig] = useState<TenantConfig | null>(null);
   const [tenantResolved, setTenantResolved] = useState(false);
@@ -235,6 +236,16 @@ export default function Home() {
     }
     const params = new URLSearchParams(window.location.search);
     setIsEmbed(params.get("embed") === "1");
+    const glassParam = params.get("glass");
+    if (glassParam === "1" || glassParam === "medium") {
+      setGlassMode("medium");
+    } else if (glassParam === "21color" || glassParam === "liquid21color") {
+      setGlassMode("liquid21color");
+    } else if (glassParam === "21" || glassParam === "liquid" || glassParam === "dock") {
+      setGlassMode("liquid21");
+    } else {
+      setGlassMode("off");
+    }
     setTenantId(params.get("tenant"));
     setTenantResolved(true);
   }, []);
@@ -669,7 +680,15 @@ export default function Home() {
           className={`${styles.main} ${isEmbed ? styles.embedMain : ""}`}
         >
           <section
-            className={`${styles.chatPane} ${isEmbed ? styles.embedChatPane : ""}`}
+            className={`${styles.chatPane} ${isEmbed ? styles.embedChatPane : ""} ${
+              isEmbed && glassMode === "medium"
+                ? styles.embedChatPaneGlassMedium
+                : isEmbed && glassMode === "liquid21color"
+                  ? styles.embedChatPaneGlass21Colored
+                : isEmbed && glassMode === "liquid21"
+                  ? styles.embedChatPaneGlass21
+                  : ""
+            }`}
             aria-live="polite"
           >
             {formattedMessages.length === 0 ? (
@@ -723,7 +742,7 @@ export default function Home() {
           <textarea
             id="CHArlotTe-input"
             className={styles.input}
-            placeholder="Chiedi orari, sale o informazioni logistiche..."
+            placeholder="Digita qui la tua domanda...."
             value={inputValue}
             onChange={(event) => setInputValue(event.target.value)}
             onKeyDown={handleKeyDown}

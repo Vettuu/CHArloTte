@@ -50,8 +50,8 @@ Questa guida spiega come pubblicare Charlotte su un hosting Aruba basato su FTP,
    ```
    Lo script:
    - copia `apps/backend` in `dist/backend`, esegue `composer install --no-dev`, pulisce storage/logs e copia `.env.production` come `.env`;
-   - esegue `npm run build && npm run export` in `apps/frontend`, copiando l'output statico `out/` in `dist/frontend`;
-   - usa `lftp mirror` per caricare `dist/backend` su `$FTP_REMOTE_DIR/backend` e `dist/frontend` su `$FTP_REMOTE_DIR/frontend`.
+   - esegue `npm run build:static` in `apps/frontend`, copiando l'output statico `out/` in `dist/frontend`;
+   - usa `lftp mirror` per caricare `dist/backend` su `$FTP_REMOTE_DIR/backend` e i file di `dist/frontend` direttamente in `$FTP_REMOTE_DIR` (root del sito, non in sottocartella `frontend/`).
 2. Dry-run (anteprima senza upload):
    ```bash
    bash scripts/deploy_ftp.sh --dry-run
@@ -64,6 +64,7 @@ Questa guida spiega come pubblicare Charlotte su un hosting Aruba basato su FTP,
 ### Note
 
 - Lo script non tocca eventuali `.htaccess`/index nella root: se il tuo hosting usa un `.htaccess` per redirigere su `frontend/index.html`, lascialo nella cartella principale (`FTP_REMOTE_DIR`).
+- Il frontend viene pubblicato direttamente nella root remota (`FTP_REMOTE_DIR`), quindi `index.html` e `report.html` devono stare lì.
 - Assicurati che `storage/` sul server sia scrivibile (imposta permessi da pannello Aruba).
 - Per aggiornamenti rapidi del solo backend/frontend puoi lanciare lo script normalmente: la fase di build rigenera entrambe le parti.
 

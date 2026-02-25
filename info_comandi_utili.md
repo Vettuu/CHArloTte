@@ -27,3 +27,7 @@ credenziali URL
 # Aggiorna con i topic le vecchi sessioni perse
 curl -u report:echelon \
   -X POST "https://www.echelonitaliaweb.it/charlotte/backend/public/api/report/retag"
+
+# Preset per iframe
+?embed=1&tenant=charlotte&glass=21 (liquid glass classico milky)
+?embed=1&tenant=charlotte&glass=21color (liquid glass colorato)
