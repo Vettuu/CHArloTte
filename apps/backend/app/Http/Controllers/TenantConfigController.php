@@ -22,6 +22,7 @@ class TenantConfigController extends Controller
                 'instructions' => $tenantConfig['instructions'] ?? null,
                 'pipeline' => $tenantConfig['pipeline'] ?? 'realtime',
                 'chat_model' => $tenantConfig['chat_model'] ?? null,
+                'knowledge_tenant' => $tenantConfig['knowledge_tenant'] ?? $tenantId,
             ],
         ]);
     }

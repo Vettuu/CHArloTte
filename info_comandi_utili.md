@@ -12,6 +12,14 @@ curl -X POST "https://www.echelonitaliaweb.it/charlotte/backend/public/api/knowl
 curl -X POST "https://www.echelonitaliaweb.it/charlotte/backend/public/api/knowledge/rebuild?token=echelon&tenant=charlotte" \
   -H "Accept: application/json"
 
+# Test del modello
+  **charlotte_text**
+curl -X POST "https://www.echelonitaliaweb.it/charlotte/backend/public/api/chat/respond" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tenant": "charlotte_text",
+    "message": "Ciao, lavorate anche alla Nuvola di Roma?"
+  }'
 
 # Aggiornamento FTP
 bash /home/daniele/CharloTte/scripts/deploy_ftp.sh
