@@ -1,6 +1,6 @@
 'use client';
 
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   RealtimeAgent,
@@ -40,6 +40,12 @@ type KnowledgeHit = {
   title: string;
   excerpt: string;
   score?: number;
+};
+
+type RagHitRef = {
+  id?: string | number | null;
+  title?: string | null;
+  score?: number | null;
 };
 
 type TenantConfig = {
@@ -84,11 +90,14 @@ type TextRespondPayload = {
   fallback?: boolean;
   rag_hits?: number;
   top_score?: number | null;
+  rag_hit_scores?: number[];
+  rag_hit_refs?: RagHitRef[];
   reply?: string | null;
   web_search?: {
     enabled?: boolean;
     sources?: Array<{ url?: string | null; title?: string | null }>;
   } | null;
+  sources?: RagHitRef[];
 };
 
 async function fetchTextResponse(
@@ -150,6 +159,76 @@ async function fetchKnowledgeContext(query: string, tenant?: string): Promise<Kn
 }
 
 const CONTEXT_MARKER = "__CHARLOTTE_CONTEXT__";
+const URL_REGEX = /(https?:\/\/[^\s<>"')]+|www\.[^\s<>"')]+)/gi;
+
+function normalizeUrl(rawUrl: string): string {
+  return rawUrl.toLowerCase().startsWith("www.")
+    ? `https://${rawUrl}`
+    : rawUrl;
+}
+
+function splitTrailingPunctuation(url: string): { cleanUrl: string; trailing: string } {
+  const match = url.match(/[),.;:!?]+$/);
+  if (!match) {
+    return { cleanUrl: url, trailing: "" };
+  }
+
+  const trailing = match[0];
+  const cleanUrl = url.slice(0, -trailing.length);
+  return { cleanUrl, trailing };
+}
+
+function renderMessageContent(content: string): ReactNode[] {
+  const parts = content.split(URL_REGEX);
+
+  return parts
+    .filter((part) => part.length > 0)
+    .flatMap((part, index) => {
+      if (!URL_REGEX.test(part)) {
+        URL_REGEX.lastIndex = 0;
+        return [<span key={`text-${index}`}>{part}</span>];
+      }
+      URL_REGEX.lastIndex = 0;
+
+      const { cleanUrl, trailing } = splitTrailingPunctuation(part);
+      if (!cleanUrl) {
+        return [<span key={`text-${index}`}>{part}</span>];
+      }
+
+      const href = normalizeUrl(cleanUrl);
+      return [
+        <a
+          key={`link-${index}`}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {cleanUrl}
+        </a>,
+        trailing ? <span key={`trail-${index}`}>{trailing}</span> : null,
+      ].filter(Boolean) as ReactNode[];
+    });
+}
+
+function buildRagMetadataFromHits(hits: KnowledgeHit[]) {
+  const ragHitScores = hits
+    .map((hit) => hit.score)
+    .filter((score): score is number => typeof score === "number")
+    .map((score) => Number(score.toFixed(3)));
+  const topScore = ragHitScores.length > 0 ? Math.max(...ragHitScores) : null;
+  const ragHitRefs: RagHitRef[] = hits.map((hit) => ({
+    id: hit.id ?? null,
+    title: hit.title ?? null,
+    score: typeof hit.score === "number" ? Number(hit.score.toFixed(3)) : null,
+  }));
+
+  return {
+    rag_hits: hits.length,
+    top_score: topScore,
+    rag_hit_scores: ragHitScores,
+    rag_hit_refs: ragHitRefs,
+  };
+}
 
 async function logChatMessage(payload: {
   sessionId: string;
@@ -253,6 +332,7 @@ export default function Home() {
   const textSessionIdRef = useRef<string | null>(null);
   const loggedMessageIds = useRef<Set<string>>(new Set());
   const pendingFallbackFlags = useRef<boolean[]>([]);
+  const pendingAssistantMetadata = useRef<Array<Record<string, unknown>>>([]);
   const seenAssistantIdsRef = useRef<Set<string>>(new Set());
 
   const formattedMessages = useMemo(
@@ -430,16 +510,15 @@ export default function Home() {
     }
     if (source === "text" && textSessionIdRef.current && tenantId) {
       mapped.forEach((message) => {
-        if (message.role !== "user" && message.role !== "assistant") {
+        if (message.role !== "assistant") {
           return;
         }
         if (loggedMessageIds.current.has(message.id)) {
           return;
         }
         loggedMessageIds.current.add(message.id);
-        const fallbackFlag = message.role === "assistant"
-          ? (pendingFallbackFlags.current.shift() ?? false)
-          : false;
+        const fallbackFlag = pendingFallbackFlags.current.shift() ?? false;
+        const assistantMetadata = pendingAssistantMetadata.current.shift() ?? {};
         void logChatMessage({
           sessionId: textSessionIdRef.current as string,
           tenantId,
@@ -448,7 +527,10 @@ export default function Home() {
           content: message.content,
           source: message.source,
           timestamp: message.timestamp,
-          metadata: fallbackFlag ? { fallback: true } : undefined,
+          metadata: {
+            ...assistantMetadata,
+            fallback: fallbackFlag,
+          },
         });
       });
     }
@@ -623,6 +705,7 @@ export default function Home() {
     const tenantForRequest = tenantId ?? undefined;
     const tenantForLogs = tenantConfig?.id ?? tenantId ?? "default";
     const pipeline = tenantConfig?.pipeline ?? "realtime";
+    const model = tenantConfig?.chat_model ?? null;
 
     const userMessageId = pushMessage("user", trimmed, "text", true);
     const userTimestamp = new Date().toISOString();
@@ -658,8 +741,16 @@ export default function Home() {
           timestamp: userTimestamp,
           metadata: {
             pipeline: "text",
+            model: payload.model ?? model,
           },
         });
+
+        const responseRagRefs = payload.rag_hit_refs ?? payload.sources ?? [];
+        const responseRagScores = payload.rag_hit_scores
+          ?? responseRagRefs
+            .map((source) => source.score)
+            .filter((score): score is number => typeof score === "number")
+            .map((score) => Number(score.toFixed(3)));
 
         void logChatMessage({
           sessionId: resolvedSessionId,
@@ -671,9 +762,12 @@ export default function Home() {
           timestamp: assistantTimestamp,
           metadata: {
             pipeline: "text",
-            model: payload.model ?? null,
+            model: payload.model ?? model,
             fallback: payload.fallback ?? false,
             rag_hits: payload.rag_hits ?? 0,
+            top_score: payload.top_score ?? null,
+            rag_hit_scores: responseRagScores,
+            rag_hit_refs: responseRagRefs,
             intent: payload.intent ?? null,
             confidence_score: payload.confidence_score ?? null,
             confidence_bucket: payload.confidence_bucket ?? null,
@@ -691,7 +785,14 @@ export default function Home() {
       const session = await ensureTextSession();
 
       const hits = await fetchKnowledgeContext(trimmed, tenantForRequest);
-      pendingFallbackFlags.current.push(hits.length === 0);
+      const ragMetadata = buildRagMetadataFromHits(hits);
+      const fallback = hits.length === 0;
+      pendingFallbackFlags.current.push(fallback);
+      pendingAssistantMetadata.current.push({
+        pipeline: "realtime",
+        model,
+        ...ragMetadata,
+      });
       const fallbackContact = tenantConfig?.support_email
         ? `Invita a contattare ${tenantConfig.support_email} per approfondimenti.`
         : "Invita a richiedere un contatto per ulteriori dettagli.";
@@ -699,6 +800,24 @@ export default function Home() {
       const contextBlock = hits.length > 0
         ? `${CONTEXT_MARKER} Usa esclusivamente questi estratti verificati per rispondere alla domanda "${trimmed}":\n${formatKnowledgeContext(hits)}`
         : `${CONTEXT_MARKER} Non hai trovato fonti affidabili per "${trimmed}". ${fallbackMessage ? `Puoi usare questo messaggio generale: "${fallbackMessage}".` : "Spiega che l'informazione non è presente nei documenti ufficiali."} ${fallbackContact}`;
+
+      const realtimeSessionId = textSessionIdRef.current ?? `rt_${crypto.randomUUID()}`;
+      textSessionIdRef.current = realtimeSessionId;
+      void logChatMessage({
+        sessionId: realtimeSessionId,
+        tenantId: tenantForLogs,
+        messageId: userMessageId,
+        role: "user",
+        content: trimmed,
+        source: "text",
+        timestamp: userTimestamp,
+        metadata: {
+          pipeline: "realtime",
+          model,
+          fallback,
+          ...ragMetadata,
+        },
+      });
 
       await session.sendMessage({
         type: "message",
@@ -824,7 +943,7 @@ export default function Home() {
                       </span>
                       <time>{message.time}</time>
                     </div>
-                    <p>{message.content}</p>
+                    <p>{renderMessageContent(message.content)}</p>
                   </li>
                 ))}
                 {isAssistantThinking ? (

@@ -150,6 +150,17 @@
   font-size: 0.98rem;
 }
 
+.message a {
+  color: #4f46e5;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+
+.message a:hover {
+  color: #4338ca;
+}
+
 .user {
   background: #ecfdf5;
   border-color: rgba(16, 185, 129, 0.4);

@@ -13,3 +13,6 @@ Può invece restituire:
 link del post social,
 eventualmente URL immagine se disponibile nelle fonti.
 Per mostrare immagini in chat devi estendere frontend (renderer immagini) + backend (passare/validare URL immagine).
+
+Link cliccabili FATTO
+Da decidere se mostrare le immagini in chat quando disponibili

@@ -95,7 +95,7 @@ TEXT,
         ],
         'charlotte_text' => [
             'name' => 'charlotte (text)',
-            'intro_message' => 'Ciao, sono CHArlotTe, l’assistente AI di Echelon Italia. Puoi chiedermi qualsiasi informazione sui nostri servizi per eventi, congressi e fiere.',
+            'intro_message' => 'Ciao, sono CHArlotTe_text, l’assistente AI di Echelon Italia. Puoi chiedermi qualsiasi informazione sui nostri servizi per eventi, congressi e fiere.',
             'support_email' => 'info@echelonitalia.it',
             'fallback_message' => 'Dimmi che tipo di evento stai organizzando o quale servizio ti interessa, in modo che possa aiutarti.',
             'pipeline' => 'text',

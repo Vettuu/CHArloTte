@@ -67,6 +67,8 @@ class ChatRespondController extends Controller
         $confidence = $this->computeConfidence($hits);
         $confidenceBucket = $this->confidenceBucket($confidence);
         $topScore = $this->topScore($hits);
+        $ragHitScores = $this->ragHitScores($hits);
+        $ragHitRefs = $this->ragHitRefs($hits);
         $contradictionFlag = $this->hasContradiction($hits);
         $policyPath = $this->resolvePolicyPath(
             hitCount: $hits->count(),
@@ -91,6 +93,8 @@ class ChatRespondController extends Controller
             'confidence_score' => $confidence,
             'confidence_bucket' => $confidenceBucket,
             'top_score' => $topScore,
+            'rag_hit_scores' => $ragHitScores,
+            'rag_hit_refs' => $ragHitRefs,
             'policy_path' => $policyPath,
             'contradiction_flag' => $contradictionFlag,
             'sources' => $sourceTitles,
@@ -122,6 +126,8 @@ class ChatRespondController extends Controller
                 'confidence_score' => $confidence,
                 'confidence_bucket' => $confidenceBucket,
                 'top_score' => $topScore,
+                'rag_hit_scores' => [],
+                'rag_hit_refs' => [],
                 'policy_path' => $policyPath,
                 'contradiction_flag' => $contradictionFlag,
                 'latency_ms' => $latencyMs,
@@ -149,6 +155,8 @@ class ChatRespondController extends Controller
                 'fallback' => true,
                 'rag_hits' => 0,
                 'top_score' => $topScore,
+                'rag_hit_scores' => [],
+                'rag_hit_refs' => [],
                 'reply' => $finalReply,
                 'web_search' => [
                     'enabled' => false,
@@ -217,6 +225,8 @@ class ChatRespondController extends Controller
             'confidence_score' => $confidence,
             'confidence_bucket' => $confidenceBucket,
             'top_score' => $topScore,
+            'rag_hit_scores' => $ragHitScores,
+            'rag_hit_refs' => $ragHitRefs,
             'policy_path' => $policyPath,
             'contradiction_flag' => $contradictionFlag,
             'latency_ms' => $latencyMs,
@@ -244,6 +254,8 @@ class ChatRespondController extends Controller
             'fallback' => $fallback,
             'rag_hits' => $hits->count(),
             'top_score' => $topScore,
+            'rag_hit_scores' => $ragHitScores,
+            'rag_hit_refs' => $ragHitRefs,
             'reply' => $result['text'],
             'web_search' => [
                 'enabled' => (bool) ($webSearchConfig['enabled'] ?? false),
@@ -415,6 +427,38 @@ class ChatRespondController extends Controller
         }
 
         return round((float) $scores->max(), 3);
+    }
+
+    /**
+     * @param Collection<int, array<string, mixed>> $hits
+     * @return array<int, float>
+     */
+    private function ragHitScores(Collection $hits): array
+    {
+        return $hits
+            ->pluck('score')
+            ->filter(fn ($score) => is_numeric($score))
+            ->map(fn ($score) => round((float) $score, 3))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param Collection<int, array<string, mixed>> $hits
+     * @return array<int, array{id: mixed, title: string, score: float|null}>
+     */
+    private function ragHitRefs(Collection $hits): array
+    {
+        return $hits
+            ->map(fn (array $hit): array => [
+                'id' => $hit['id'] ?? null,
+                'title' => (string) ($hit['title'] ?? 'Knowledge'),
+                'score' => isset($hit['score']) && is_numeric($hit['score'])
+                    ? round((float) $hit['score'], 3)
+                    : null,
+            ])
+            ->values()
+            ->all();
     }
 
     /**
