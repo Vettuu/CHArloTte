@@ -49,6 +49,9 @@ type TenantConfig = {
   support_email?: string | null;
   fallback_message?: string | null;
   instructions?: string | null;
+  pipeline?: "realtime" | "text";
+  chat_model?: string | null;
+  knowledge_tenant?: string | null;
 };
 
 async function fetchRealtimeToken(mode: "text" | "audio", tenant?: string) {
@@ -60,6 +63,48 @@ async function fetchRealtimeToken(mode: "text" | "audio", tenant?: string) {
     body: JSON.stringify({
       mode,
       metadata: tenant ? { tenant } : undefined,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Errore backend (${response.status})`);
+  }
+
+  return response.json();
+}
+
+type TextRespondPayload = {
+  session_id?: string | null;
+  model?: string | null;
+  intent?: string | null;
+  confidence_score?: number | null;
+  confidence_bucket?: string | null;
+  policy_path?: string | null;
+  contradiction_flag?: boolean | null;
+  fallback?: boolean;
+  rag_hits?: number;
+  top_score?: number | null;
+  reply?: string | null;
+  web_search?: {
+    enabled?: boolean;
+    sources?: Array<{ url?: string | null; title?: string | null }>;
+  } | null;
+};
+
+async function fetchTextResponse(
+  message: string,
+  tenant?: string,
+  sessionId?: string | null,
+): Promise<TextRespondPayload> {
+  const response = await fetch(`${BACKEND_URL}/api/chat/respond`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message,
+      tenant,
+      session_id: sessionId ?? undefined,
     }),
   });
 
@@ -495,11 +540,12 @@ export default function Home() {
     content: string,
     source: MessageSource = "text",
     isLocal: boolean = false,
-  ) => {
+  ): string => {
+    const id = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
       {
-        id: crypto.randomUUID(),
+        id,
         role,
         content,
         timestamp: new Date().toISOString(),
@@ -507,6 +553,7 @@ export default function Home() {
         isLocal,
       },
     ]);
+    return id;
   };
 
   const ensureVoiceSession = async (): Promise<RealtimeSession> => {
@@ -573,15 +620,77 @@ export default function Home() {
     const trimmed = inputValue.trim();
     if (!trimmed) return;
 
-    pushMessage("user", trimmed, "text", true);
+    const tenantForRequest = tenantId ?? undefined;
+    const tenantForLogs = tenantConfig?.id ?? tenantId ?? "default";
+    const pipeline = tenantConfig?.pipeline ?? "realtime";
+
+    const userMessageId = pushMessage("user", trimmed, "text", true);
+    const userTimestamp = new Date().toISOString();
     setInputValue("");
     setIsSending(true);
     setIsAssistantThinking(true);
 
     try {
+      if (pipeline === "text") {
+        const payload = await fetchTextResponse(
+          trimmed,
+          tenantForRequest,
+          textSessionIdRef.current,
+        );
+
+        const resolvedSessionId = payload.session_id
+          ?? textSessionIdRef.current
+          ?? `txt_${crypto.randomUUID()}`;
+        textSessionIdRef.current = resolvedSessionId;
+
+        const assistantText = payload.reply?.trim()
+          || "Non riesco a contattare CHArlotTe in questo momento. Riprova tra poco.";
+        const assistantMessageId = pushMessage("assistant", assistantText, "text");
+        const assistantTimestamp = new Date().toISOString();
+
+        void logChatMessage({
+          sessionId: resolvedSessionId,
+          tenantId: tenantForLogs,
+          messageId: userMessageId,
+          role: "user",
+          content: trimmed,
+          source: "text",
+          timestamp: userTimestamp,
+          metadata: {
+            pipeline: "text",
+          },
+        });
+
+        void logChatMessage({
+          sessionId: resolvedSessionId,
+          tenantId: tenantForLogs,
+          messageId: assistantMessageId,
+          role: "assistant",
+          content: assistantText,
+          source: "text",
+          timestamp: assistantTimestamp,
+          metadata: {
+            pipeline: "text",
+            model: payload.model ?? null,
+            fallback: payload.fallback ?? false,
+            rag_hits: payload.rag_hits ?? 0,
+            intent: payload.intent ?? null,
+            confidence_score: payload.confidence_score ?? null,
+            confidence_bucket: payload.confidence_bucket ?? null,
+            policy_path: payload.policy_path ?? null,
+            contradiction_flag: payload.contradiction_flag ?? false,
+            web_search_enabled: payload.web_search?.enabled ?? false,
+            web_sources_count: payload.web_search?.sources?.length ?? 0,
+          },
+        });
+
+        setIsAssistantThinking(false);
+        return;
+      }
+
       const session = await ensureTextSession();
 
-      const hits = await fetchKnowledgeContext(trimmed, tenantId ?? undefined);
+      const hits = await fetchKnowledgeContext(trimmed, tenantForRequest);
       pendingFallbackFlags.current.push(hits.length === 0);
       const fallbackContact = tenantConfig?.support_email
         ? `Invita a contattare ${tenantConfig.support_email} per approfondimenti.`
