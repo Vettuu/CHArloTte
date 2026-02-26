@@ -34,7 +34,7 @@ return [
                 // Se false: anche con 0 hit il modello può rispondere con fallback guidato.
                 'strict_fallback_on_zero_hits' => filter_var(
                     env('OPENAI_TEXT_POLICY_STRICT_FALLBACK_ON_ZERO_HITS', true),
-                    FILTER_VALIDATE_BOOL
+                    FILTER_VALIDATE_BOOLEAN
                 ),
 
                 // Numero minimo di hit richiesti per percorso "full_answer".
@@ -79,7 +79,7 @@ return [
             'web_search' => [
                 // Abilita/disabilita web search per pipeline text.
                 // true = il controller può attivarla in base alla policy intent.
-                'enabled' => filter_var(env('OPENAI_TEXT_WEB_SEARCH_ENABLED', true), FILTER_VALIDATE_BOOL),
+                'enabled' => filter_var(env('OPENAI_TEXT_WEB_SEARCH_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
 
                 // Quantità di contesto web usato dal tool.
                 // Valori comuni: low | medium | high
