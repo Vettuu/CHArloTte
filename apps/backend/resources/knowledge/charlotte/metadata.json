@@ -28,7 +28,7 @@
       "congressi",
       "fiere",
       "ecm",
-      "luoghi di attività",
+      "luoghi-attivita",
       "sedi"
     ],
     "summary": "Panoramica dei principali servizi Echelon Italia per eventi: web e registrazioni, comunicazioni, e-commerce, segreteria, accredito, badge, presenze ECM, app, votazioni, placement, eventi online, FAD, modulistica ECM, e-poster e lead retrieval."
@@ -42,8 +42,7 @@
       "form",
       "registrazione",
       "e-commerce",
-      "pagamenti",
-      "eventi"
+      "pagamenti"
     ],
     "summary": "Siti web per eventi con programmi, relatori, form di iscrizione, raccolta materiali e moduli e-commerce; include back-end organizzatore, comunicazioni email e pagamenti online."
   },
@@ -56,8 +55,7 @@
       "email",
       "landing page",
       "recall",
-      "report",
-      "eventi"
+      "report"
     ],
     "summary": "Servizi di segreteria organizzativa: invio massivo email, landing page, recall, back-end, help desk, invio QRCode e gestione wallet, con stime costi indicative."
   },
@@ -70,8 +68,7 @@
       "ipad",
       "qrcode",
       "offline",
-      "controllo accessi",
-      "eventi"
+      "controllo accessi"
     ],
     "summary": "Accredito rapido con iPad tramite QRCode o ricerca nominativo, lista cloud aggiornata, operativita offline, gestione accompagnatori e controllo accessi anche ECM, con stima costi indicativa."
   },
@@ -85,8 +82,7 @@
       "qrcode",
       "accredito",
       "eco-friendly",
-      "totem",
-      "eventi"
+      "totem"
     ],
     "summary": "Servizio di stampa badge on-site con postazioni e totem, QRCode per accredito veloce, materiali green e linee guida su volumi; include formula di stima indicativa."
   },
@@ -96,12 +92,11 @@
     "title": "Totem Multimediali e software eTotem",
     "tags": [
       "totem",
-      "self registration",
+      "self-registration",
       "badge",
       "qrcode",
       "survey",
-      "attestati",
-      "eventi"
+      "attestati"
     ],
     "summary": "Totem multimediali con software eTotem per self registration: stampa badge, QRCode, attestati, survey touch e info point con supporto AI, con assistenza tecnica in sede."
   },
@@ -114,8 +109,7 @@
       "presenze",
       "rfid",
       "uhf",
-      "qrcode",
-      "eventi"
+      "qrcode"
     ],
     "summary": "Rilevamento presenze ECM con portale RFID UHF hands-free, report ingressi/uscite e alternative con QRCode o iPad per controllo accessi."
   },
@@ -128,8 +122,7 @@
       "placement",
       "mappa sala",
       "badge",
-      "controllo accessi",
-      "eventi"
+      "controllo accessi"
     ],
     "summary": "Software con mappa sala per assegnazione posti, modifiche last-minute, stampa posto sul badge ed export Excel; include controllo accessi con QRCode."
   },
@@ -139,12 +132,11 @@
     "title": "App interattiva evento",
     "tags": [
       "app",
-      "eventi",
       "networking",
       "push",
       "sondaggi",
       "programma",
-      "ai"
+      "intelligenza-artificiale"
     ],
     "summary": "App evento nativa personalizzata con contenuti e funzioni interattive: networking, notifiche push, Q&A, instant poll, supporto AI, programma per topic, agenda, attestati e costi con formula indicativa."
   },
@@ -156,7 +148,6 @@
       "votazioni",
       "televoto",
       "telecomandi",
-      "eventi",
       "sondaggi"
     ],
     "summary": "Sistema di televotazione con telecomandi per votazioni in aula, risultati in tempo reale e integrazione nelle slide; adatto a mozioni, bilanci e sondaggi."
@@ -198,7 +189,7 @@
       "modulistica",
       "questionari",
       "report",
-      "qr code",
+      "qrcode",
       "attestati"
     ],
     "summary": "Soluzioni online per modulistica ECM: anagrafica, questionari, report XML, controllo presenze via QRCode, attestati e supporto webinar."
@@ -213,7 +204,7 @@
       "abstract",
       "valutazione",
       "monitor",
-      "qr code"
+      "qrcode"
     ],
     "summary": "Piattaforma per raccolta e valutazione di e-poster e papers con back-end, monitor in sede, ricerca per autore e download via QRCode."
   },
@@ -225,9 +216,8 @@
       "lead retrieval",
       "espositori",
       "sponsor",
-      "qr code",
-      "app",
-      "eventi"
+      "qrcode",
+      "app"
     ],
     "summary": "Sistema di raccolta dati per espositori con app o lettori barcode, report in tempo reale, funzionamento offline e assistenza in sede."
   }

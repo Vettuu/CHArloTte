@@ -49,6 +49,16 @@ return [
                     // Sotto medium il bucket diventa "low".
                     'medium' => (int) env('OPENAI_TEXT_POLICY_CONFIDENCE_MEDIUM', 45),
                 ],
+                'confidence_formula' => [
+                    // Numero massimo di chunk considerati nel calcolo confidence robusto.
+                    'top_n' => (int) env('OPENAI_TEXT_POLICY_CONFIDENCE_TOP_N', 4),
+                    // Pesi formula: Confidence = (alpha*c1 + beta*mu) * (1 - sigma_n)
+                    // dove c1=max score, mu=media top_n, sigma_n=deviazione standard normalizzata.
+                    'alpha' => (float) env('OPENAI_TEXT_POLICY_CONFIDENCE_ALPHA', 0.60),
+                    'beta' => (float) env('OPENAI_TEXT_POLICY_CONFIDENCE_BETA', 0.40),
+                    // Scala score embedding attuale: 0..1, quindi range_max=1.
+                    'range_max' => (float) env('OPENAI_TEXT_POLICY_CONFIDENCE_RANGE_MAX', 1.0),
+                ],
 
                 // Intent per cui è consentito attivare web search.
                 // Esempio attuale: showcase_web (dimostrazioni/eventi passati/social).

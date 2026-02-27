@@ -62,17 +62,32 @@ class ChatRespondController extends Controller
         ]);
 
         $intent = $this->detectIntent($message);
-        $hits = $this->search->search($message, $maxHits, $knowledgeTenantId)->values();
+        $queryTokenCount = $this->keywordTokenCount($message);
+        $minTokensForRatio = max(1, (int) config('knowledge.keyword_min_tokens_for_ratio', 2));
+        $shortQuery = $queryTokenCount < $minTokensForRatio;
+        $searchDiagnostics = $this->search->searchWithDiagnostics($message, $maxHits, $knowledgeTenantId);
+        $hits = collect($searchDiagnostics['accepted_hits'] ?? [])->values();
+        $diagnosticHits = collect($searchDiagnostics['diagnostic_hits'] ?? [])->values();
+        $keywordCandidates = collect($searchDiagnostics['keyword_candidates'] ?? [])->values();
         $fallback = $hits->isEmpty();
-        $confidence = $this->computeConfidence($hits);
+        $confidence = $this->computeConfidence($diagnosticHits);
         $confidenceBucket = $this->confidenceBucket($confidence);
-        $topScore = $this->topScore($hits);
+        $topScore = $searchDiagnostics['top_score'] ?? $this->topScore($diagnosticHits);
+        $semanticLevel = (string) ($searchDiagnostics['semantic_level'] ?? $this->scoreLevelFromTopScore($topScore));
         $ragHitScores = $this->ragHitScores($hits);
         $ragHitRefs = $this->ragHitRefs($hits);
+        $diagnosticHitScores = $this->ragHitScores($diagnosticHits);
+        $diagnosticHitRefs = $this->ragHitRefs($diagnosticHits);
+        $acceptedHitsSummary = $this->compactHitSummary($ragHitRefs, $ragHitScores);
+        $diagnosticHitsSummary = $this->compactHitSummary($diagnosticHitRefs, $diagnosticHitScores);
+        $keywordCandidatesSummary = $this->compactKeywordCandidates($keywordCandidates->all());
         $contradictionFlag = $this->hasContradiction($hits);
         $policyPath = $this->resolvePolicyPath(
             hitCount: $hits->count(),
+            diagnosticHitCount: $diagnosticHits->count(),
             confidenceBucket: $confidenceBucket,
+            semanticLevel: $semanticLevel,
+            shortQuery: $shortQuery,
             contradictionFlag: $contradictionFlag,
             policy: $policy,
         );
@@ -83,18 +98,57 @@ class ChatRespondController extends Controller
             ->take(5)
             ->values()
             ->all();
+        $topKeywordCandidate = $keywordCandidates
+            ->sort(function (array $a, array $b): int {
+                $ratioA = is_numeric($a['match_ratio'] ?? null) ? (float) $a['match_ratio'] : -1.0;
+                $ratioB = is_numeric($b['match_ratio'] ?? null) ? (float) $b['match_ratio'] : -1.0;
+                if ($ratioA !== $ratioB) {
+                    return $ratioA < $ratioB ? 1 : -1;
+                }
+
+                $matchedA = is_numeric($a['matched_tokens'] ?? null) ? (int) $a['matched_tokens'] : -1;
+                $matchedB = is_numeric($b['matched_tokens'] ?? null) ? (int) $b['matched_tokens'] : -1;
+                if ($matchedA !== $matchedB) {
+                    return $matchedA < $matchedB ? 1 : -1;
+                }
+
+                $totalA = is_numeric($a['total_tokens'] ?? null) ? (int) $a['total_tokens'] : PHP_INT_MAX;
+                $totalB = is_numeric($b['total_tokens'] ?? null) ? (int) $b['total_tokens'] : PHP_INT_MAX;
+                if ($totalA !== $totalB) {
+                    return $totalA < $totalB ? -1 : 1;
+                }
+
+                return 0;
+            })
+            ->first();
+        $keywordTopMatchedTokens = is_array($topKeywordCandidate)
+            ? data_get($topKeywordCandidate, 'matched_tokens')
+            : null;
+        $keywordTopTotalTokens = is_array($topKeywordCandidate)
+            ? data_get($topKeywordCandidate, 'total_tokens')
+            : null;
+        $keywordTopMatchRatio = is_array($topKeywordCandidate)
+            ? data_get($topKeywordCandidate, 'match_ratio')
+            : null;
 
         $this->writeTextChatLog($textLog, 'info', 'Text chat RAG resolved', [
             'session_id' => $sessionId,
             'tenant' => $tenantId,
             'rag_hits' => $hits->count(),
+            'query_token_count' => $queryTokenCount,
+            'short_query' => $shortQuery,
             'fallback' => $fallback,
             'intent' => $intent,
             'confidence_score' => $confidence,
             'confidence_bucket' => $confidenceBucket,
             'top_score' => $topScore,
-            'rag_hit_scores' => $ragHitScores,
-            'rag_hit_refs' => $ragHitRefs,
+            'semantic_level' => $semanticLevel,
+            'accepted_hits' => $acceptedHitsSummary,
+            'diagnostic_hits' => $diagnosticHitsSummary,
+            'keyword_candidates' => $keywordCandidatesSummary,
+            'keyword_top_matched_tokens' => $keywordTopMatchedTokens,
+            'keyword_top_total_tokens' => $keywordTopTotalTokens,
+            'keyword_top_match_ratio' => $keywordTopMatchRatio,
             'policy_path' => $policyPath,
             'contradiction_flag' => $contradictionFlag,
             'sources' => $sourceTitles,
@@ -122,12 +176,16 @@ class ChatRespondController extends Controller
                 'model' => null,
                 'fallback' => true,
                 'rag_hits' => 0,
+                'query_token_count' => $queryTokenCount,
+                'short_query' => $shortQuery,
                 'intent' => $intent,
                 'confidence_score' => $confidence,
                 'confidence_bucket' => $confidenceBucket,
                 'top_score' => $topScore,
-                'rag_hit_scores' => [],
-                'rag_hit_refs' => [],
+                'semantic_level' => $semanticLevel,
+                'accepted_hits' => ['count' => 0, 'scores' => [], 'refs' => []],
+                'diagnostic_hits' => $diagnosticHitsSummary,
+                'keyword_candidates' => $keywordCandidatesSummary,
                 'policy_path' => $policyPath,
                 'contradiction_flag' => $contradictionFlag,
                 'latency_ms' => $latencyMs,
@@ -154,9 +212,16 @@ class ChatRespondController extends Controller
                 'contradiction_flag' => $contradictionFlag,
                 'fallback' => true,
                 'rag_hits' => 0,
+                'query_token_count' => $queryTokenCount,
+                'short_query' => $shortQuery,
                 'top_score' => $topScore,
+                'semantic_level' => $semanticLevel,
                 'rag_hit_scores' => [],
                 'rag_hit_refs' => [],
+                'diagnostic_hit_scores' => $diagnosticHitScores,
+                'diagnostic_hit_refs' => $diagnosticHitRefs,
+                'keyword_candidates_count' => $keywordCandidates->count(),
+                'keyword_candidates' => $keywordCandidates->all(),
                 'reply' => $finalReply,
                 'web_search' => [
                     'enabled' => false,
@@ -164,6 +229,97 @@ class ChatRespondController extends Controller
                     'sources' => [],
                 ],
                 'sources' => [],
+            ]);
+        }
+
+        if ($policyPath === 'soft_fallback') {
+            $relatedTopics = $hits
+                ->pluck('title')
+                ->filter(fn ($title) => is_string($title) && trim($title) !== '')
+                ->take(2)
+                ->values()
+                ->all();
+
+            $topicsText = $relatedTopics !== []
+                ? ' Ho trovato contenuti correlati su: '.implode(', ', $relatedTopics).'.'
+                : '';
+
+            $clarification = 'Se mi dici il servizio o il contesto specifico (es. accredito, totem, badge, ECM), ti rispondo in modo preciso.';
+            $contact = $supportEmail !== ''
+                ? " In alternativa puoi contattare {$supportEmail}."
+                : '';
+            $base = $fallbackMessage !== ''
+                ? $fallbackMessage
+                : 'Ho trovato riferimenti parziali ma non abbastanza solidi per una risposta completa.';
+
+            $finalReply = trim($base.$topicsText.' '.$clarification.$contact);
+            $latencyMs = (int) round((microtime(true) - $startedAt) * 1000);
+
+            $this->writeTextChatLog($textLog, 'info', 'Text chat response ready', [
+                'session_id' => $sessionId,
+                'tenant' => $tenantId,
+                'knowledge_tenant' => $knowledgeTenantId,
+                'pipeline' => $pipeline,
+                'model' => null,
+                'fallback' => true,
+                'rag_hits' => $hits->count(),
+                'query_token_count' => $queryTokenCount,
+                'short_query' => $shortQuery,
+                'intent' => $intent,
+                'confidence_score' => $confidence,
+                'confidence_bucket' => $confidenceBucket,
+                'top_score' => $topScore,
+                'semantic_level' => $semanticLevel,
+                'accepted_hits' => $acceptedHitsSummary,
+                'diagnostic_hits' => $diagnosticHitsSummary,
+                'keyword_candidates' => $keywordCandidatesSummary,
+                'policy_path' => $policyPath,
+                'contradiction_flag' => $contradictionFlag,
+                'latency_ms' => $latencyMs,
+                'reply_len' => mb_strlen($finalReply),
+                'reply_preview' => Str::limit($finalReply, 140),
+                'web_search_enabled' => false,
+                'web_sources_count' => 0,
+                'web_sources' => [],
+            ]);
+
+            return response()->json([
+                'session_id' => $sessionId,
+                'tenant' => [
+                    'id' => $tenantId,
+                    'name' => $tenantConfig['name'] ?? $tenantId,
+                    'pipeline' => $pipeline,
+                    'knowledge_tenant' => $knowledgeTenantId,
+                ],
+                'model' => null,
+                'intent' => $intent,
+                'confidence_score' => $confidence,
+                'confidence_bucket' => $confidenceBucket,
+                'policy_path' => $policyPath,
+                'contradiction_flag' => $contradictionFlag,
+                'fallback' => true,
+                'rag_hits' => $hits->count(),
+                'query_token_count' => $queryTokenCount,
+                'short_query' => $shortQuery,
+                'top_score' => $topScore,
+                'semantic_level' => $semanticLevel,
+                'rag_hit_scores' => $ragHitScores,
+                'rag_hit_refs' => $ragHitRefs,
+                'diagnostic_hit_scores' => $diagnosticHitScores,
+                'diagnostic_hit_refs' => $diagnosticHitRefs,
+                'keyword_candidates_count' => $keywordCandidates->count(),
+                'keyword_candidates' => $keywordCandidates->all(),
+                'reply' => $finalReply,
+                'web_search' => [
+                    'enabled' => false,
+                    'allowed_domains' => [],
+                    'sources' => [],
+                ],
+                'sources' => $hits->map(fn (array $hit): array => [
+                    'id' => $hit['id'] ?? null,
+                    'title' => $hit['title'] ?? null,
+                    'score' => $hit['score'] ?? null,
+                ])->values(),
             ]);
         }
 
@@ -221,12 +377,16 @@ class ChatRespondController extends Controller
             'model' => $model,
             'fallback' => $fallback,
             'rag_hits' => $hits->count(),
+            'query_token_count' => $queryTokenCount,
+            'short_query' => $shortQuery,
             'intent' => $intent,
             'confidence_score' => $confidence,
             'confidence_bucket' => $confidenceBucket,
             'top_score' => $topScore,
-            'rag_hit_scores' => $ragHitScores,
-            'rag_hit_refs' => $ragHitRefs,
+            'semantic_level' => $semanticLevel,
+            'accepted_hits' => $acceptedHitsSummary,
+            'diagnostic_hits' => $diagnosticHitsSummary,
+            'keyword_candidates' => $keywordCandidatesSummary,
             'policy_path' => $policyPath,
             'contradiction_flag' => $contradictionFlag,
             'latency_ms' => $latencyMs,
@@ -253,9 +413,16 @@ class ChatRespondController extends Controller
             'contradiction_flag' => $contradictionFlag,
             'fallback' => $fallback,
             'rag_hits' => $hits->count(),
+            'query_token_count' => $queryTokenCount,
+            'short_query' => $shortQuery,
             'top_score' => $topScore,
+            'semantic_level' => $semanticLevel,
             'rag_hit_scores' => $ragHitScores,
             'rag_hit_refs' => $ragHitRefs,
+            'diagnostic_hit_scores' => $diagnosticHitScores,
+            'diagnostic_hit_refs' => $diagnosticHitRefs,
+            'keyword_candidates_count' => $keywordCandidates->count(),
+            'keyword_candidates' => $keywordCandidates->all(),
             'reply' => $result['text'],
             'web_search' => [
                 'enabled' => (bool) ($webSearchConfig['enabled'] ?? false),
@@ -283,6 +450,25 @@ class ChatRespondController extends Controller
         string $intent,
     ): string
     {
+        if ($policyPath === 'partial_answer_clarify') {
+            $context = collect($hits)
+                ->take(2)
+                ->map(function (array $hit): string {
+                    $score = isset($hit['score']) ? ' (score '.$hit['score'].')' : '';
+                    $title = (string) ($hit['title'] ?? 'Knowledge');
+                    $excerpt = (string) ($hit['excerpt'] ?? '');
+
+                    return "Fonte: {$title}{$score}\n{$excerpt}";
+                })
+                ->implode("\n\n");
+
+            $contextText = $context !== ''
+                ? "Contesto disponibile:\n{$context}"
+                : "Contesto disponibile: limitato.";
+
+            return "Domanda utente: {$query}\n\nLa richiesta è troppo breve o ambigua. Fornisci una risposta iniziale prudente (massimo 2 frasi) e poi fai UNA domanda di chiarimento molto mirata per disambiguare l'intento. Non inventare dettagli non presenti nelle fonti.\n\n{$contextText}";
+        }
+
         if ($hits === []) {
             $contact = $supportEmail
                 ? "Invita a contattare {$supportEmail} per approfondimenti."
@@ -381,24 +567,49 @@ class ChatRespondController extends Controller
      */
     private function computeConfidence(Collection $hits): int
     {
-        $count = $hits->count();
-        if ($count === 0) {
+        $formula = (array) config('models.pipelines.text.policy.confidence_formula', []);
+        $topN = max(1, (int) ($formula['top_n'] ?? 4));
+        $alpha = (float) ($formula['alpha'] ?? 0.60);
+        $beta = (float) ($formula['beta'] ?? 0.40);
+        $rangeMax = max(0.000001, (float) ($formula['range_max'] ?? 1.0));
+
+        // Normalizza i pesi in modo che alpha + beta = 1 anche se configurati male.
+        $weightSum = $alpha + $beta;
+        if ($weightSum <= 0) {
+            $alpha = 0.60;
+            $beta = 0.40;
+            $weightSum = 1.0;
+        }
+        $alpha /= $weightSum;
+        $beta /= $weightSum;
+
+        $scores = $hits
+            ->pluck('score')
+            ->filter(fn ($score) => is_numeric($score))
+            ->map(fn ($score) => max(0.0, min(1.0, (float) $score)))
+            ->sortDesc()
+            ->take($topN)
+            ->values();
+
+        if ($scores->isEmpty()) {
             return 0;
         }
 
-        $countScore = min(45, $count * 11);
-        $scores = $hits->pluck('score')->filter(fn ($score) => is_numeric($score))->map(fn ($score) => (float) $score);
+        $c1 = (float) $scores->first();
+        $mu = (float) ($scores->avg() ?? 0.0);
+        $count = $scores->count();
 
-        if ($scores->isEmpty()) {
-            return min(70, $countScore + 20);
-        }
+        // Deviazione standard popolazione sui top-n score.
+        $variance = $scores
+            ->map(fn (float $score): float => ($score - $mu) ** 2)
+            ->sum() / max(1, $count);
+        $sigma = sqrt(max(0.0, $variance));
+        $sigmaNormalized = max(0.0, min(1.0, $sigma / $rangeMax));
 
-        $avg = $scores->avg() ?? 0.0;
-        $top = $scores->max() ?? 0.0;
-        $semanticScore = (int) round(min(45, ($avg * 50)));
-        $topBonus = $top >= 0.90 ? 10 : ($top >= 0.80 ? 6 : 0);
+        // Confidence su scala 0..1, poi convertita 0..100.
+        $confidenceRaw = ($alpha * $c1 + $beta * $mu) * (1.0 - $sigmaNormalized);
 
-        return max(0, min(100, $countScore + $semanticScore + $topBonus));
+        return (int) round(max(0.0, min(1.0, $confidenceRaw)) * 100);
     }
 
     private function confidenceBucket(int $confidence): string
@@ -494,12 +705,27 @@ class ChatRespondController extends Controller
         return $includesYes && $includesNo;
     }
 
-    private function resolvePolicyPath(int $hitCount, string $confidenceBucket, bool $contradictionFlag, array $policy): string
+    private function resolvePolicyPath(
+        int $hitCount,
+        int $diagnosticHitCount,
+        string $confidenceBucket,
+        string $semanticLevel,
+        bool $shortQuery,
+        bool $contradictionFlag,
+        array $policy
+    ): string
     {
         $strictFallbackOnZero = (bool) ($policy['strict_fallback_on_zero_hits'] ?? true);
         $fullAnswerRequiresHits = max(1, (int) ($policy['full_answer_requires_hits'] ?? 4));
 
+        if ($shortQuery) {
+            return 'partial_answer_clarify';
+        }
+
         if ($strictFallbackOnZero && $hitCount === 0) {
+            if ($diagnosticHitCount > 0) {
+                return 'soft_fallback';
+            }
             return 'strict_fallback';
         }
 
@@ -511,7 +737,95 @@ class ChatRespondController extends Controller
             return 'partial_answer';
         }
 
-        return $confidenceBucket === 'high' ? 'full_answer' : 'partial_answer';
+        return $semanticLevel === 'high' && $confidenceBucket === 'high'
+            ? 'full_answer'
+            : 'partial_answer';
+    }
+
+    private function keywordTokenCount(string $query): int
+    {
+        $normalized = Str::of($query)
+            ->lower()
+            ->ascii()
+            ->replaceMatches('/[^a-z0-9\\s]/', ' ')
+            ->squish()
+            ->value();
+
+        if ($normalized === '') {
+            return 0;
+        }
+
+        $stopwords = collect(config('knowledge.keyword_stopwords', []))
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->map(fn (string $item) => Str::of($item)->lower()->ascii()->value())
+            ->unique();
+
+        return collect(preg_split('/\s+/', $normalized) ?: [])
+            ->filter(fn (string $token): bool => mb_strlen($token) >= 3)
+            ->reject(fn (string $token): bool => $stopwords->contains($token))
+            ->unique()
+            ->count();
+    }
+
+    /**
+     * @param array<int, array{id: mixed, title: string, score: float|null}> $refs
+     * @param array<int, float> $scores
+     * @return array{count:int,scores:array<int,float>,refs:array<int,array{id:mixed,title:string,score:float|null}>}
+     */
+    private function compactHitSummary(array $refs, array $scores): array
+    {
+        return [
+            'count' => count($refs),
+            'scores' => array_slice($scores, 0, 6),
+            'refs' => array_slice($refs, 0, 3),
+        ];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $candidates
+     * @return array{count:int,items:array<int,array<string,mixed>>}
+     */
+    private function compactKeywordCandidates(array $candidates): array
+    {
+        $items = collect($candidates)
+            ->take(4)
+            ->map(fn (array $candidate): array => [
+                'id' => $candidate['id'] ?? null,
+                'title' => $candidate['title'] ?? null,
+                'matched_tokens' => $candidate['matched_tokens'] ?? null,
+                'total_tokens' => $candidate['total_tokens'] ?? null,
+                'match_ratio' => $candidate['match_ratio'] ?? null,
+                'direct_needle_match' => $candidate['direct_needle_match'] ?? null,
+                'strong_term_match' => $candidate['strong_term_match'] ?? null,
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'count' => count($candidates),
+            'items' => $items,
+        ];
+    }
+
+    private function scoreLevelFromTopScore(?float $topScore): string
+    {
+        $highThreshold = (float) config('knowledge.score_levels.high', config('knowledge.min_score', 0.70));
+        $mediumMinThreshold = (float) config('knowledge.score_levels.medium_min', 0.36);
+        $highThreshold = max($highThreshold, $mediumMinThreshold);
+
+        if ($topScore === null) {
+            return 'low';
+        }
+
+        if ($topScore >= $highThreshold) {
+            return 'high';
+        }
+
+        if ($topScore >= $mediumMinThreshold) {
+            return 'medium';
+        }
+
+        return 'low';
     }
 
     /**

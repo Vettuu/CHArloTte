@@ -70,56 +70,88 @@ class KnowledgeRepository
         }
         $tokens = $this->expandTokens($this->tokenize($normalizedQuery));
         $documents = $this->all($tenantId);
-
-        $summaryMatches = $documents
-            ->filter(function (array $document) use ($tokens, $normalizedQuery): bool {
-                $haystack = $this->normalize($document['summary'] ?? '');
-
-                return $this->matches($haystack, $tokens, $normalizedQuery);
-            })
-            ->map(function (array $document): array {
-                $document['excerpt'] = trim($document['summary'] ?? '');
-
-                return $document;
-            });
-
-        if ($summaryMatches->isNotEmpty()) {
-            return $summaryMatches->values();
-        }
+        $summaryBonus = max(0.0, (float) config('knowledge.keyword_ranking.summary_bonus', 0.05));
+        $maxKeywordScore = max(0.1, (float) config('knowledge.keyword_ranking.max_score', 1.0));
 
         return $documents
-            ->map(function (array $document) use ($tokens, $normalizedQuery): ?array {
-                $content = $document['content'] ?? '';
+            ->map(function (array $document) use ($tokens, $normalizedQuery, $summaryBonus, $maxKeywordScore): ?array {
+                $summary = trim((string) ($document['summary'] ?? ''));
+                $summaryAnalysis = $this->matchAnalysis(
+                    $this->normalize($summary),
+                    $tokens,
+                    $normalizedQuery
+                );
+                $summaryMatched = (bool) ($summaryAnalysis['matched'] ?? false);
+                $summaryRankScore = $summaryMatched
+                    ? min($maxKeywordScore, (float) ($summaryAnalysis['keyword_score'] ?? 0.0) + $summaryBonus)
+                    : -1.0;
 
-                if ($content === '') {
-                    return null;
-                }
+                $content = (string) ($document['content'] ?? '');
+                $contentMatched = false;
+                $contentAnalysis = null;
+                $contentExcerpt = '';
+                $contentRankScore = -1.0;
 
-                $lines = preg_split('/\r\n|\r|\n/', $content) ?: [];
+                if ($content !== '') {
+                    $lines = preg_split('/\r\n|\r|\n/', $content) ?: [];
+                    foreach ($lines as $line) {
+                        $line = trim((string) $line);
+                        if ($line === '') {
+                            continue;
+                        }
 
-                foreach ($lines as $line) {
-                    $normalizedLine = $this->normalize($line);
+                        $analysis = $this->matchAnalysis($this->normalize($line), $tokens, $normalizedQuery);
+                        if (! ($analysis['matched'] ?? false)) {
+                            continue;
+                        }
 
-                    if ($this->matches($normalizedLine, $tokens, $normalizedQuery)) {
-                        $document['excerpt'] = trim($line);
+                        $candidateScore = (float) ($analysis['keyword_score'] ?? 0.0);
+                        if (! $contentMatched || $candidateScore > $contentRankScore) {
+                            $contentMatched = true;
+                            $contentAnalysis = $analysis;
+                            $contentExcerpt = $line;
+                            $contentRankScore = $candidateScore;
+                        }
+                    }
 
-                        return $document;
+                    if (! $contentMatched) {
+                        $normalizedContent = $this->normalize($content);
+                        $analysis = $this->matchAnalysis($normalizedContent, $tokens, $normalizedQuery);
+                        if ($analysis['matched'] ?? false) {
+                            $contentMatched = true;
+                            $contentAnalysis = $analysis;
+                            $contentRankScore = (float) ($analysis['keyword_score'] ?? 0.0);
+                            $position = mb_strpos($normalizedContent, $normalizedQuery);
+                            if ($position !== false) {
+                                $contentExcerpt = trim(mb_substr($content, max($position - 80, 0), 200));
+                            }
+                        }
                     }
                 }
 
-                $normalizedContent = $this->normalize($content);
-                $position = mb_strpos($normalizedContent, $normalizedQuery);
-
-                if ($position === false) {
+                if (! $summaryMatched && ! $contentMatched) {
                     return null;
                 }
 
-                $snippet = trim(mb_substr($content, max($position - 80, 0), 200));
-                $document['excerpt'] = $snippet;
+                $pickSummary = $summaryMatched && $summaryRankScore >= $contentRankScore;
+                if ($pickSummary) {
+                    $summaryAnalysis['source'] = 'summary';
+                    $summaryAnalysis['keyword_score'] = round($summaryRankScore, 3);
+                    $document['excerpt'] = $summary;
+                    $document['keyword_match'] = $summaryAnalysis;
+                } else {
+                    /** @var array<string, mixed> $contentAnalysis */
+                    $contentAnalysis = is_array($contentAnalysis) ? $contentAnalysis : [];
+                    $contentAnalysis['source'] = 'content';
+                    $contentAnalysis['keyword_score'] = round(max(0.0, $contentRankScore), 3);
+                    $document['excerpt'] = $contentExcerpt;
+                    $document['keyword_match'] = $contentAnalysis;
+                }
 
                 return $document;
             })
             ->filter()
+            ->sortByDesc(fn (array $document): float => (float) data_get($document, 'keyword_match.keyword_score', 0.0))
             ->values();
     }
 
@@ -128,8 +160,24 @@ class KnowledgeRepository
      */
     private function tokenize(string $value): Collection
     {
+        $minTokenLength = max(1, (int) config('knowledge.keyword_min_token_length', 3));
+        $stopwords = collect(config('knowledge.keyword_stopwords', []))
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->map(fn (string $item) => Str::of($item)->lower()->ascii()->value())
+            ->unique()
+            ->values();
+        $shortTokenAllowlist = collect(config('knowledge.keyword_short_token_allowlist', []))
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->map(fn (string $item) => Str::of($item)->lower()->ascii()->value())
+            ->unique()
+            ->values();
+
         return collect(preg_split('/\s+/', $value) ?: [])
-            ->filter(fn (string $token): bool => mb_strlen($token) >= 3)
+            ->filter(
+                fn (string $token): bool => mb_strlen($token) >= $minTokenLength
+                    || $shortTokenAllowlist->contains($token)
+            )
+            ->reject(fn (string $token): bool => $stopwords->contains($token))
             ->unique()
             ->values();
     }
@@ -140,13 +188,21 @@ class KnowledgeRepository
      */
     private function expandTokens(Collection $tokens): Collection
     {
-        $synonyms = [
-            'phone' => ['telefono', 'numero', 'cellulare', 'tel', 'phone'],
-            'responsabile' => ['responsabile', 'referente', 'manager'],
-            'email' => ['email', 'mail', 'indirizzo'],
-            'name' => ['nome', 'name'],
-            'secretariat' => ['segreteria', 'segreteria organizzativa', 'secretariat'],
-        ];
+        $synonyms = collect(config('knowledge.keyword_synonyms', []))
+            ->filter(fn ($variants, $canonical) => is_string($canonical) && is_array($variants))
+            ->mapWithKeys(function (array $variants, string $canonical): array {
+                $normalizedCanonical = Str::of($canonical)->lower()->ascii()->value();
+                $normalizedVariants = collect($variants)
+                    ->filter(fn ($variant) => is_string($variant) && trim($variant) !== '')
+                    ->map(fn (string $variant) => Str::of($variant)->lower()->ascii()->value())
+                    ->push($normalizedCanonical)
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                return [$normalizedCanonical => $normalizedVariants];
+            })
+            ->all();
 
         return $tokens
             ->map(function (string $token) use ($synonyms): string {
@@ -164,6 +220,13 @@ class KnowledgeRepository
 
     private function normalize(string $value): string
     {
+        // Unifica composti tecnici con trattino in token unico:
+        // qr-code -> qrcode, check-in -> checkin
+        $value = preg_replace('/(?<=[\\pL\\pN])\\-(?=[\\pL\\pN])/u', '', $value) ?? $value;
+        // Lo slash separa significati, quindi va trattato come separatore:
+        // scritto/orale -> scritto orale
+        $value = str_replace('/', ' ', $value);
+
         return Str::of($value)
             ->lower()
             ->ascii()
@@ -177,15 +240,192 @@ class KnowledgeRepository
      */
     private function matches(string $haystack, Collection $tokens, string $needle): bool
     {
+        return $this->matchAnalysis($haystack, $tokens, $needle)['matched'];
+    }
+
+    /**
+     * @param  Collection<int, string>  $tokens
+     * @return array{
+     *   matched: bool,
+     *   matched_tokens: int,
+     *   total_tokens: int,
+     *   match_ratio: float,
+     *   direct_needle_match: bool,
+     *   strong_term_match: bool,
+     *   keyword_score: float
+     * }
+     */
+    private function matchAnalysis(string $haystack, Collection $tokens, string $needle): array
+    {
         if ($haystack === '') {
-            return false;
+            return [
+                'matched' => false,
+                'matched_tokens' => 0,
+                'total_tokens' => 0,
+                'match_ratio' => 0.0,
+                'direct_needle_match' => false,
+                'strong_term_match' => false,
+                'keyword_score' => 0.0,
+            ];
+        }
+
+        $directNeedleMatch = $needle !== '' && str_contains($haystack, $needle);
+        if ($needle !== '' && str_contains($haystack, $needle)) {
+            $totalTokens = $tokens->count();
+            $matchedTokens = $totalTokens;
+            $ratio = $totalTokens > 0 ? 1.0 : 0.0;
+
+            return [
+                'matched' => true,
+                'matched_tokens' => $matchedTokens,
+                'total_tokens' => $totalTokens,
+                'match_ratio' => $ratio,
+                'direct_needle_match' => true,
+                'strong_term_match' => false,
+                'keyword_score' => $this->computeKeywordScore(
+                    matchRatio: $ratio,
+                    matchedTokens: $matchedTokens,
+                    directNeedleMatch: true,
+                    strongTermMatch: false,
+                ),
+            ];
         }
 
         if ($tokens->isEmpty()) {
-            return str_contains($haystack, $needle);
+            return [
+                'matched' => false,
+                'matched_tokens' => 0,
+                'total_tokens' => 0,
+                'match_ratio' => 0.0,
+                'direct_needle_match' => $directNeedleMatch,
+                'strong_term_match' => false,
+                'keyword_score' => 0.0,
+            ];
         }
 
-        return $tokens->every(fn (string $token): bool => str_contains($haystack, $token));
+        $totalTokens = $tokens->count();
+        $matchedTokens = $tokens
+            ->filter(fn (string $token): bool => str_contains($haystack, $token))
+            ->count();
+
+        $minTokensForRatio = max(1, (int) config('knowledge.keyword_min_tokens_for_ratio', 2));
+        $minMatchRatio = max(0.0, min(1.0, (float) config('knowledge.keyword_min_match_ratio', 0.50)));
+        $matchRatio = $totalTokens > 0 ? ($matchedTokens / $totalTokens) : 0.0;
+        $strongTermMatch = false;
+
+        // Query molto corte: basta un match utile.
+        if ($totalTokens < $minTokensForRatio) {
+            return [
+                'matched' => $matchedTokens > 0,
+                'matched_tokens' => $matchedTokens,
+                'total_tokens' => $totalTokens,
+                'match_ratio' => round($matchRatio, 3),
+                'direct_needle_match' => $directNeedleMatch,
+                'strong_term_match' => false,
+                'keyword_score' => $this->computeKeywordScore(
+                    matchRatio: $matchRatio,
+                    matchedTokens: $matchedTokens,
+                    directNeedleMatch: $directNeedleMatch,
+                    strongTermMatch: false,
+                ),
+            ];
+        }
+
+        if ($matchRatio >= $minMatchRatio) {
+            return [
+                'matched' => true,
+                'matched_tokens' => $matchedTokens,
+                'total_tokens' => $totalTokens,
+                'match_ratio' => round($matchRatio, 3),
+                'direct_needle_match' => $directNeedleMatch,
+                'strong_term_match' => false,
+                'keyword_score' => $this->computeKeywordScore(
+                    matchRatio: $matchRatio,
+                    matchedTokens: $matchedTokens,
+                    directNeedleMatch: $directNeedleMatch,
+                    strongTermMatch: false,
+                ),
+            ];
+        }
+
+        $strongTerms = collect(config('knowledge.keyword_strong_terms', []))
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->map(fn (string $item) => Str::of($item)->lower()->ascii()->value())
+            ->unique()
+            ->values();
+
+        if ($strongTerms->isNotEmpty()) {
+            $queryStrongTerms = $tokens
+                ->filter(fn (string $token): bool => $strongTerms->contains($token))
+                ->values();
+
+            if ($queryStrongTerms->isNotEmpty()) {
+                $hasStrongTermMatch = $queryStrongTerms
+                    ->contains(fn (string $token): bool => str_contains($haystack, $token));
+                $strongTermMatch = $hasStrongTermMatch;
+
+                // Boost moderato: se c'è almeno un termine forte, accetta con ratio leggermente più basso.
+                $boostedRatioThreshold = max(0.0, $minMatchRatio - 0.15);
+                if ($hasStrongTermMatch && $matchRatio >= $boostedRatioThreshold) {
+                    return [
+                        'matched' => true,
+                        'matched_tokens' => $matchedTokens,
+                        'total_tokens' => $totalTokens,
+                        'match_ratio' => round($matchRatio, 3),
+                        'direct_needle_match' => $directNeedleMatch,
+                        'strong_term_match' => true,
+                        'keyword_score' => $this->computeKeywordScore(
+                            matchRatio: $matchRatio,
+                            matchedTokens: $matchedTokens,
+                            directNeedleMatch: $directNeedleMatch,
+                            strongTermMatch: true,
+                        ),
+                    ];
+                }
+            }
+        }
+
+        return [
+            'matched' => false,
+            'matched_tokens' => $matchedTokens,
+            'total_tokens' => $totalTokens,
+            'match_ratio' => round($matchRatio, 3),
+            'direct_needle_match' => $directNeedleMatch,
+            'strong_term_match' => $strongTermMatch,
+            'keyword_score' => $this->computeKeywordScore(
+                matchRatio: $matchRatio,
+                matchedTokens: $matchedTokens,
+                directNeedleMatch: $directNeedleMatch,
+                strongTermMatch: $strongTermMatch,
+            ),
+        ];
+    }
+
+    private function computeKeywordScore(
+        float $matchRatio,
+        int $matchedTokens,
+        bool $directNeedleMatch,
+        bool $strongTermMatch
+    ): float {
+        $ranking = (array) config('knowledge.keyword_ranking', []);
+        if (($ranking['enabled'] ?? true) !== true) {
+            return round(max(0.0, min(1.0, $matchRatio)), 3);
+        }
+
+        $ratioWeight = max(0.0, (float) ($ranking['ratio_weight'] ?? 0.70));
+        $directNeedleBonus = max(0.0, (float) ($ranking['direct_needle_bonus'] ?? 0.20));
+        $strongTermBonus = max(0.0, (float) ($ranking['strong_term_bonus'] ?? 0.10));
+        $matchedTokenBonus = max(0.0, (float) ($ranking['matched_token_bonus'] ?? 0.02));
+        $maxTokenBonus = max(0.0, (float) ($ranking['max_token_bonus'] ?? 0.10));
+        $maxScore = max(0.1, (float) ($ranking['max_score'] ?? 1.0));
+
+        $tokenBonus = min($maxTokenBonus, $matchedTokens * $matchedTokenBonus);
+        $score = ($matchRatio * $ratioWeight)
+            + ($directNeedleMatch ? $directNeedleBonus : 0.0)
+            + ($strongTermMatch ? $strongTermBonus : 0.0)
+            + $tokenBonus;
+
+        return round(max(0.0, min($maxScore, $score)), 3);
     }
 
     public function structuredLookup(string $query, ?string $tenantId = null): ?string
