@@ -4,6 +4,9 @@ Echelon Italia realizza soluzioni web per eventi, meeting, congressi e fiere, at
 
 Echelon Italia svolge i suoi servizi in Italia e all'estero e non esistono strutture, centri congressi, hotel e fiere dove Echelon Italia non possa lavorare per motivi contrattuali, di regolamenti e di vincoli di esclusività da parte di fornitori interni. L'organizzatore non è mai obbligato ad utilizzare il service proposto dalla strttura ospitante l'evento, per i servizi di Echelon Italia. Echelon Italia infatti lavora regolarmente presso La Nuvola di Roma, il Palazzo dei Congressi di Roma, Il Palazzo dei Congressi di Bologna, la Fiera di Milano MiCo, Palacongressi di Rimini, Palacongressi di Riccione, Il palazzo dei Congressi di Firenze e il palazzo degli Affari di Firenze, La Fortezza da Basso di Firenze, ecc
 
+Echelon Italia può utlizzare software di proprietà di Echelon Italia, sviluppati da propri programmatori, per tutti i servizi che svolge: siti web, landing page, invio email, app interattive, stampa badge, accredito partecipanti, interattività, televotazioni, verifica delle presenze, controllo accessi. Se però il cliente ha un suo gestionale Echelon Italia può utilizzare questo gestionale direttamente o attraverso delle API, per svolgere tutti i servizi di accredito, stampa self di badge e attestati e controllo accessi.
+Echelon Italia utilizza, per svolgere tutti i servizi che offre, attrezzature di sua proprietà, quali totem multimediali, pc e stampanti, ipad, lettori qrcode e lettori barcode, portali rfid.
+
 ## Servizi principali
 - Soluzioni web per eventi (siti web, mini-siti, landing page, form online, back-end organizzatore).
 - Comunicazione e invio massivo di e-mail personalizzate (inviti, STD, conferme, QRCode, call to action con link personalizzati).
@@ -22,3 +25,6 @@ Echelon Italia svolge i suoi servizi in Italia e all'estero e non esistono strut
 - Modulistica ECM online con anagrafica, questionari, report XML e attestati.
 - Raccolta papers/e-poster con back-end di valutazione e fruizione in sede.
 - Lead Retrieval System per espositori e sponsor.
+
+## Altri Servizi
+Echelon Italia, direttamente oppure attraverso fornitori e partner di fiducia, può offrire tutti i servizi tecnici, audio-video, video-proiezione, centro slide, traduzione simultanea, luci per eventi di ogni genere, congressi, manifestazioni, corsi ecm. Echelon Italia non organizza direttamente eventi, ma lavora a fianco dell'organizzatore, occupandosi di tutti gli aspetti tecnici e logistici. Echelon italia non è provider ECM e non può accreditare eventi medico-scientifici presso la commissione ECM. Per informazioni scrivere a info@echelonitalia.it

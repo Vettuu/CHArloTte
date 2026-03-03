@@ -81,7 +81,11 @@ class ChatRespondController extends Controller
         $acceptedHitsSummary = $this->compactHitSummary($ragHitRefs, $ragHitScores);
         $diagnosticHitsSummary = $this->compactHitSummary($diagnosticHitRefs, $diagnosticHitScores);
         $keywordCandidatesSummary = $this->compactKeywordCandidates($keywordCandidates->all());
-        $contradictionFlag = $this->hasContradiction($hits);
+        $contradiction = $this->analyzeContradiction($hits, $message);
+        $contradictionFlag = (bool) ($contradiction['flag'] ?? false);
+        $contradictionType = (string) ($contradiction['type'] ?? 'none');
+        $contradictionTopic = (string) ($contradiction['topic'] ?? 'none');
+        $contradictionEvidenceCount = (int) ($contradiction['evidence_count'] ?? 0);
         $policyPath = $this->resolvePolicyPath(
             hitCount: $hits->count(),
             diagnosticHitCount: $diagnosticHits->count(),
@@ -151,6 +155,9 @@ class ChatRespondController extends Controller
             'keyword_top_match_ratio' => $keywordTopMatchRatio,
             'policy_path' => $policyPath,
             'contradiction_flag' => $contradictionFlag,
+            'contradiction_type' => $contradictionType,
+            'contradiction_topic' => $contradictionTopic,
+            'contradiction_evidence_count' => $contradictionEvidenceCount,
             'sources' => $sourceTitles,
         ]);
 
@@ -183,11 +190,14 @@ class ChatRespondController extends Controller
                 'confidence_bucket' => $confidenceBucket,
                 'top_score' => $topScore,
                 'semantic_level' => $semanticLevel,
-                'accepted_hits' => ['count' => 0, 'scores' => [], 'refs' => []],
-                'diagnostic_hits' => $diagnosticHitsSummary,
-                'keyword_candidates' => $keywordCandidatesSummary,
+                'accepted_hits_count' => 0,
+                'diagnostic_hits_count' => $diagnosticHits->count(),
+                'keyword_candidates_count' => $keywordCandidates->count(),
                 'policy_path' => $policyPath,
                 'contradiction_flag' => $contradictionFlag,
+                'contradiction_type' => $contradictionType,
+                'contradiction_topic' => $contradictionTopic,
+                'contradiction_evidence_count' => $contradictionEvidenceCount,
                 'latency_ms' => $latencyMs,
                 'reply_len' => mb_strlen($finalReply),
                 'reply_preview' => Str::limit($finalReply, 140),
@@ -210,6 +220,9 @@ class ChatRespondController extends Controller
                 'confidence_bucket' => $confidenceBucket,
                 'policy_path' => $policyPath,
                 'contradiction_flag' => $contradictionFlag,
+                'contradiction_type' => $contradictionType,
+                'contradiction_topic' => $contradictionTopic,
+                'contradiction_evidence_count' => $contradictionEvidenceCount,
                 'fallback' => true,
                 'rag_hits' => 0,
                 'query_token_count' => $queryTokenCount,
@@ -270,11 +283,14 @@ class ChatRespondController extends Controller
                 'confidence_bucket' => $confidenceBucket,
                 'top_score' => $topScore,
                 'semantic_level' => $semanticLevel,
-                'accepted_hits' => $acceptedHitsSummary,
-                'diagnostic_hits' => $diagnosticHitsSummary,
-                'keyword_candidates' => $keywordCandidatesSummary,
+                'accepted_hits_count' => $hits->count(),
+                'diagnostic_hits_count' => $diagnosticHits->count(),
+                'keyword_candidates_count' => $keywordCandidates->count(),
                 'policy_path' => $policyPath,
                 'contradiction_flag' => $contradictionFlag,
+                'contradiction_type' => $contradictionType,
+                'contradiction_topic' => $contradictionTopic,
+                'contradiction_evidence_count' => $contradictionEvidenceCount,
                 'latency_ms' => $latencyMs,
                 'reply_len' => mb_strlen($finalReply),
                 'reply_preview' => Str::limit($finalReply, 140),
@@ -297,6 +313,9 @@ class ChatRespondController extends Controller
                 'confidence_bucket' => $confidenceBucket,
                 'policy_path' => $policyPath,
                 'contradiction_flag' => $contradictionFlag,
+                'contradiction_type' => $contradictionType,
+                'contradiction_topic' => $contradictionTopic,
+                'contradiction_evidence_count' => $contradictionEvidenceCount,
                 'fallback' => true,
                 'rag_hits' => $hits->count(),
                 'query_token_count' => $queryTokenCount,
@@ -384,11 +403,14 @@ class ChatRespondController extends Controller
             'confidence_bucket' => $confidenceBucket,
             'top_score' => $topScore,
             'semantic_level' => $semanticLevel,
-            'accepted_hits' => $acceptedHitsSummary,
-            'diagnostic_hits' => $diagnosticHitsSummary,
-            'keyword_candidates' => $keywordCandidatesSummary,
+            'accepted_hits_count' => $hits->count(),
+            'diagnostic_hits_count' => $diagnosticHits->count(),
+            'keyword_candidates_count' => $keywordCandidates->count(),
             'policy_path' => $policyPath,
             'contradiction_flag' => $contradictionFlag,
+            'contradiction_type' => $contradictionType,
+            'contradiction_topic' => $contradictionTopic,
+            'contradiction_evidence_count' => $contradictionEvidenceCount,
             'latency_ms' => $latencyMs,
             'reply_len' => mb_strlen($replyText),
             'reply_preview' => Str::limit($replyText, 140),
@@ -411,6 +433,9 @@ class ChatRespondController extends Controller
             'confidence_bucket' => $confidenceBucket,
             'policy_path' => $policyPath,
             'contradiction_flag' => $contradictionFlag,
+            'contradiction_type' => $contradictionType,
+            'contradiction_topic' => $contradictionTopic,
+            'contradiction_evidence_count' => $contradictionEvidenceCount,
             'fallback' => $fallback,
             'rag_hits' => $hits->count(),
             'query_token_count' => $queryTokenCount,
@@ -674,35 +699,169 @@ class ChatRespondController extends Controller
 
     /**
      * @param Collection<int, array<string, mixed>> $hits
+     * @return array{flag: bool, type: string, topic: string, evidence_count: int}
      */
-    private function hasContradiction(Collection $hits): bool
+    private function analyzeContradiction(Collection $hits, string $query): array
     {
-        if ($hits->count() < 2) {
-            return false;
+        $minEvidence = max(2, (int) config('models.pipelines.text.policy.contradiction.min_evidence', 2));
+        $priceRelativeDelta = max(0.0, min(1.0, (float) config('models.pipelines.text.policy.contradiction.price_relative_delta', 0.20)));
+        $normalizedQuery = Str::of($query)->lower()->ascii()->squish()->value();
+        $queryPriceTerms = ['costo', 'costi', 'prezzo', 'prezzi', 'euro', 'preventivo', 'tariffa', 'stima', 'quanto costa'];
+        $queryAvailabilityTerms = ['disponibile', 'non disponibile', 'offline', 'online', 'attivo', 'supportato', 'consentito'];
+        $queryAsksPrice = collect($queryPriceTerms)->contains(
+            fn (string $term): bool => str_contains($normalizedQuery, $term)
+        );
+        $queryAsksAvailability = collect($queryAvailabilityTerms)->contains(
+            fn (string $term): bool => str_contains($normalizedQuery, $term)
+        );
+
+        if ($hits->count() < $minEvidence) {
+            return ['flag' => false, 'type' => 'none', 'topic' => 'none', 'evidence_count' => 0];
         }
 
         $texts = $hits
             ->pluck('excerpt')
-            ->filter(fn ($excerpt) => is_string($excerpt))
-            ->map(fn ($excerpt) => Str::of($excerpt)->lower()->ascii()->value());
+            ->filter(fn ($excerpt) => is_string($excerpt) && trim($excerpt) !== '')
+            ->map(fn ($excerpt) => Str::of((string) $excerpt)->lower()->ascii()->value())
+            ->values();
 
-        $prices = collect();
+        if ($texts->count() < $minEvidence) {
+            return ['flag' => false, 'type' => 'none', 'topic' => 'none', 'evidence_count' => 0];
+        }
+
+        $topicLexicon = [
+            'accredito' => ['accredito', 'checkin', 'check in', 'registrazione'],
+            'badge' => ['badge', 'cartellino'],
+            'totem' => ['totem', 'kiosk', 'self registration', 'self-registration'],
+            'ecm' => ['ecm', 'crediti', 'rfid', 'uhf', 'presenze'],
+            'votazioni' => ['votazioni', 'televoto', 'e-vote', 'evote', 'elezioni'],
+            'app' => ['app', 'applicazione', 'mobile app'],
+            'streaming' => ['streaming', 'webinar', 'videoconferenza'],
+            'costi' => ['costo', 'costi', 'prezzo', 'prezzi', 'euro', 'preventivo', 'tariffa', 'stima'],
+            'servizi' => ['servizi', 'soluzioni', 'offerta'],
+        ];
+
+        $positivePatterns = [
+            '/\bsi\b/u',
+            '/\bdisponibile\b/u',
+            '/\battivo\b/u',
+            '/\bsupportato\b/u',
+            '/\bincluso\b/u',
+            '/\bprevisto\b/u',
+            '/\bconsentito\b/u',
+        ];
+        $negativePatterns = [
+            '/\bno\b/u',
+            '/\bnon\s+disponibile\b/u',
+            '/\bnon\s+attivo\b/u',
+            '/\bnon\s+supportato\b/u',
+            '/\bnon\s+incluso\b/u',
+            '/\bnon\s+previsto\b/u',
+            '/\bnon\s+consentito\b/u',
+            '/\bnon\b/u',
+        ];
+
+        $availabilityEvidence = collect();
+        $priceEvidence = collect();
+
         foreach ($texts as $text) {
-            if (preg_match_all('/\b(\d{2,5})\s?(euro|€)\b/i', (string) $text, $matches)) {
-                foreach ($matches[1] as $value) {
-                    $prices->push((int) $value);
+            $topics = collect($topicLexicon)
+                ->filter(function (array $terms) use ($text): bool {
+                    foreach ($terms as $term) {
+                        if (str_contains($text, Str::of($term)->lower()->ascii()->value())) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                })
+                ->keys()
+                ->values();
+
+            if ($topics->isEmpty()) {
+                $topics = collect(['generic']);
+            }
+
+            $hasPositive = collect($positivePatterns)->contains(fn (string $pattern): bool => preg_match($pattern, $text) === 1);
+            $hasNegative = collect($negativePatterns)->contains(fn (string $pattern): bool => preg_match($pattern, $text) === 1);
+
+            if ($hasPositive || $hasNegative) {
+                foreach ($topics as $topic) {
+                    $availabilityEvidence->push([
+                        'topic' => (string) $topic,
+                        'positive' => $hasPositive,
+                        'negative' => $hasNegative,
+                    ]);
+                }
+            }
+
+            if (preg_match_all('/\b(\d{2,5})(?:[.,]\d{1,2})?\s?(euro|€)\b/u', $text, $matches) > 0) {
+                $values = collect($matches[1] ?? [])
+                    ->map(fn (string $raw): float => (float) str_replace(',', '.', $raw))
+                    ->filter(fn (float $value): bool => $value > 0)
+                    ->values();
+
+                if ($values->isNotEmpty()) {
+                    foreach ($topics as $topic) {
+                        $priceEvidence->push([
+                            'topic' => (string) $topic,
+                            'values' => $values->all(),
+                        ]);
+                    }
                 }
             }
         }
 
-        if ($prices->unique()->count() > 1) {
-            return true;
+        $availabilityByTopic = $availabilityEvidence->groupBy('topic');
+        foreach ($availabilityByTopic as $topic => $entries) {
+            $hasPositive = collect($entries)->contains(fn (array $entry): bool => (bool) ($entry['positive'] ?? false));
+            $hasNegative = collect($entries)->contains(fn (array $entry): bool => (bool) ($entry['negative'] ?? false));
+            $evidenceCount = collect($entries)->count();
+
+            if ($hasPositive && $hasNegative && $evidenceCount >= $minEvidence) {
+                return [
+                    'flag' => true,
+                    'type' => 'availability_conflict',
+                    'topic' => (string) $topic,
+                    'evidence_count' => $evidenceCount,
+                ];
+            }
         }
 
-        $includesYes = $texts->contains(fn ($text) => str_contains((string) $text, 'si') || str_contains((string) $text, 'disponibile'));
-        $includesNo = $texts->contains(fn ($text) => str_contains((string) $text, 'non') || str_contains((string) $text, 'non disponibile'));
+        // Se la query è chiaramente di disponibilità, evita di promuovere mismatch prezzi
+        // come contraddizione dominante.
+        if ($queryAsksPrice || ! $queryAsksAvailability) {
+            $pricesByTopic = $priceEvidence->groupBy('topic');
+            foreach ($pricesByTopic as $topic => $entries) {
+                $values = collect($entries)
+                    ->flatMap(fn (array $entry): array => is_array($entry['values'] ?? null) ? $entry['values'] : [])
+                    ->map(fn ($value): float => (float) $value)
+                    ->filter(fn (float $value): bool => $value > 0)
+                    ->values();
 
-        return $includesYes && $includesNo;
+                if ($values->count() < $minEvidence) {
+                    continue;
+                }
+
+                $minValue = (float) $values->min();
+                $maxValue = (float) $values->max();
+                if ($minValue <= 0.0) {
+                    continue;
+                }
+
+                $relativeDelta = ($maxValue - $minValue) / $minValue;
+                if ($relativeDelta >= $priceRelativeDelta) {
+                    return [
+                        'flag' => true,
+                        'type' => 'price_mismatch',
+                        'topic' => (string) $topic,
+                        'evidence_count' => $values->count(),
+                    ];
+                }
+            }
+        }
+
+        return ['flag' => false, 'type' => 'none', 'topic' => 'none', 'evidence_count' => 0];
     }
 
     private function resolvePolicyPath(
@@ -716,14 +875,29 @@ class ChatRespondController extends Controller
     ): string
     {
         $strictFallbackOnZero = (bool) ($policy['strict_fallback_on_zero_hits'] ?? true);
+        $clarifyOnZeroWithDiagnostics = (bool) ($policy['clarify_on_zero_hits_with_diagnostics'] ?? true);
         $fullAnswerRequiresHits = max(1, (int) ($policy['full_answer_requires_hits'] ?? 4));
 
         if ($shortQuery) {
-            return 'partial_answer_clarify';
+            $shortQueryPolicy = (array) ($policy['short_query'] ?? []);
+            $minConfidenceBucket = (string) ($shortQueryPolicy['min_confidence_bucket'] ?? 'medium');
+            $minSemanticLevel = (string) ($shortQueryPolicy['min_semantic_level'] ?? 'medium');
+
+            $shortQueryCanProceed =
+                $hitCount > 0
+                && $this->bucketAtLeast($confidenceBucket, $minConfidenceBucket)
+                && $this->bucketAtLeast($semanticLevel, $minSemanticLevel);
+
+            if (! $shortQueryCanProceed) {
+                return 'partial_answer_clarify';
+            }
         }
 
         if ($strictFallbackOnZero && $hitCount === 0) {
             if ($diagnosticHitCount > 0) {
+                if ($clarifyOnZeroWithDiagnostics) {
+                    return 'partial_answer_clarify';
+                }
                 return 'soft_fallback';
             }
             return 'strict_fallback';
@@ -740,6 +914,20 @@ class ChatRespondController extends Controller
         return $semanticLevel === 'high' && $confidenceBucket === 'high'
             ? 'full_answer'
             : 'partial_answer';
+    }
+
+    private function bucketAtLeast(string $value, string $minimum): bool
+    {
+        $rank = [
+            'low' => 0,
+            'medium' => 1,
+            'high' => 2,
+        ];
+
+        $valueRank = $rank[strtolower($value)] ?? 0;
+        $minimumRank = $rank[strtolower($minimum)] ?? 1;
+
+        return $valueRank >= $minimumRank;
     }
 
     private function keywordTokenCount(string $query): int
@@ -774,10 +962,14 @@ class ChatRespondController extends Controller
      */
     private function compactHitSummary(array $refs, array $scores): array
     {
+        $logPolicy = (array) config('models.pipelines.text.policy.log', []);
+        $scoresLimit = max(1, (int) ($logPolicy['hit_scores_limit'] ?? 20));
+        $refsLimit = max(1, (int) ($logPolicy['hit_refs_limit'] ?? 20));
+
         return [
             'count' => count($refs),
-            'scores' => array_slice($scores, 0, 6),
-            'refs' => array_slice($refs, 0, 3),
+            'scores' => array_slice($scores, 0, $scoresLimit),
+            'refs' => array_slice($refs, 0, $refsLimit),
         ];
     }
 
@@ -787,8 +979,11 @@ class ChatRespondController extends Controller
      */
     private function compactKeywordCandidates(array $candidates): array
     {
+        $logPolicy = (array) config('models.pipelines.text.policy.log', []);
+        $itemsLimit = max(1, (int) ($logPolicy['keyword_items_limit'] ?? 8));
+
         $items = collect($candidates)
-            ->take(4)
+            ->take($itemsLimit)
             ->map(fn (array $candidate): array => [
                 'id' => $candidate['id'] ?? null,
                 'title' => $candidate['title'] ?? null,
@@ -797,6 +992,9 @@ class ChatRespondController extends Controller
                 'match_ratio' => $candidate['match_ratio'] ?? null,
                 'direct_needle_match' => $candidate['direct_needle_match'] ?? null,
                 'strong_term_match' => $candidate['strong_term_match'] ?? null,
+                'matched_terms' => $candidate['matched_terms'] ?? [],
+                'query_terms' => $candidate['query_terms'] ?? [],
+                'strong_matched_terms' => $candidate['strong_matched_terms'] ?? [],
             ])
             ->values()
             ->all();

@@ -1,8 +1,13 @@
 # Echelon Italia - Overview aziendale
 
-## Identita e posizionamento
-Echelon Italia e una societa di Roma specializzata nella gestione dell'innovazione in eventi, meeting, congressi, manifestazioni ed eventi ECM. Grazie al proprio personale coinvolto da 20 anni negli eventi, la societa e una organizzazione fortemente qualificata la cui professionalita poggia sulla qualita, affidabilita ed esperienza. La ricerca di soluzioni innovative e l'utilizzo di tecnologie all'avanguardia permette alla Echelon di ottimizzare tutti i servizi organizzativi e logistici.
+## Identità e posizionamento
+Echelon Italia è una societa di Roma, con oltre 20 anni di esperienza nel mondo congressuale e fieristico, progetta e realizza prodotti tecnologici innovativi, siti web e app interattive affidabili e di qualità per eventi di ogni dimensione.
+Echelon Italia è specializzata in innovazione tecnologica e supporto logistico in eventi, meeting, congressi, manifestazioni ed eventi ECM. Grazie al proprio personale coinvolto da 20 anni negli eventi, la societa è una organizzazione fortemente qualificata la cui professionalita poggia sulla qualità, affidabilita ed esperienza.
 
-Con oltre 20 anni di esperienza nel mondo congressuale e fieristico, progetta e realizza prodotti tecnologici innovativi, siti web e app interattive affidabili e di qualita per eventi di ogni dimensione.
+Echelon Italia non organizza eventi, ma lavora a fianco dell'organizzatore supportandolo nella tecnologia e nella logistica. Interviene, quando richiesto, con il proprio personale in sede di evento, garantendo assistenza tecnica per sue attrezzature e personale qualificato per l'utilizzo dei propri software.
 
-ECHELON ITALIA e una societa di Roma specializzata in soluzioni innovative informatiche, web e app per meeting, congressi e fiere. Grazie a personale esperto Echelon Italia fornisce soluzioni chiavi in mano con assistenza in sede di evento.
+La sede legale e operativa della società è a Roma, in via della balduina n. 260, cap 00136, ma svolge servizi in tutta europa.
+Il telefono è 06 45439892
+La email per richiedere informazioni è info@echelonitalia.it
+Il responsabile commerciale è Roberto Cernibori, il responsabile amministrativo è Alessandra Cecchini.
+

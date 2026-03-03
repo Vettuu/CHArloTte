@@ -36,6 +36,13 @@ return [
                     env('OPENAI_TEXT_POLICY_STRICT_FALLBACK_ON_ZERO_HITS', true),
                     FILTER_VALIDATE_BOOLEAN
                 ),
+                // Se true: con 0 accepted hit ma diagnostic hit > 0
+                // passa a "partial_answer_clarify" invece di "soft_fallback".
+                // Utile per query ambigue ma correlate (es. venue/nomi parziali).
+                'clarify_on_zero_hits_with_diagnostics' => filter_var(
+                    env('OPENAI_TEXT_POLICY_CLARIFY_ON_ZERO_HITS_WITH_DIAGNOSTICS', true),
+                    FILTER_VALIDATE_BOOLEAN
+                ),
 
                 // Numero minimo di hit richiesti per percorso "full_answer".
                 // Sotto questa soglia il controller usa "partial_answer".
@@ -48,6 +55,15 @@ return [
                     // Soglia per bucket "medium" (0-100).
                     // Sotto medium il bucket diventa "low".
                     'medium' => (int) env('OPENAI_TEXT_POLICY_CONFIDENCE_MEDIUM', 45),
+                ],
+                'short_query' => [
+                    // Se la query è corta, consenti il flusso normale solo se
+                    // confidence bucket >= questo valore.
+                    // Valori: low | medium | high
+                    'min_confidence_bucket' => env('OPENAI_TEXT_POLICY_SHORT_QUERY_MIN_CONFIDENCE_BUCKET', 'medium'),
+                    // E semantic level >= questo valore.
+                    // Valori: low | medium | high
+                    'min_semantic_level' => env('OPENAI_TEXT_POLICY_SHORT_QUERY_MIN_SEMANTIC_LEVEL', 'medium'),
                 ],
                 'confidence_formula' => [
                     // Numero massimo di chunk considerati nel calcolo confidence robusto.
@@ -84,6 +100,20 @@ return [
                             'costo,preventivo,prezzo,tariffa,budget,stima'
                         ))
                     ))),
+                ],
+                'contradiction' => [
+                    // Minimo numero di evidenze per considerare reale una contraddizione.
+                    'min_evidence' => (int) env('OPENAI_TEXT_POLICY_CONTRADICTION_MIN_EVIDENCE', 2),
+                    // Divergenza relativa minima sui prezzi (0..1) per flaggare mismatch.
+                    // Esempio 0.20 = 20%.
+                    'price_relative_delta' => (float) env('OPENAI_TEXT_POLICY_CONTRADICTION_PRICE_RELATIVE_DELTA', 0.20),
+                ],
+                'log' => [
+                    // Limiti blocchi compact nei log backend text.
+                    // Tienili alti per vedere tutti gli hit reali nella maggior parte dei casi.
+                    'hit_scores_limit' => (int) env('OPENAI_TEXT_POLICY_LOG_HIT_SCORES_LIMIT', 20),
+                    'hit_refs_limit' => (int) env('OPENAI_TEXT_POLICY_LOG_HIT_REFS_LIMIT', 20),
+                    'keyword_items_limit' => (int) env('OPENAI_TEXT_POLICY_LOG_KEYWORD_ITEMS_LIMIT', 8),
                 ],
             ],
             'web_search' => [

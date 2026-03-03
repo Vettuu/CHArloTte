@@ -1,6 +1,6 @@
 # Modulistica ECM online
 
-Echelon Italia supporta i Provider nelle procedure necessarie per l'attribuzione dei crediti formativi professionali in eventi residenziali e in FAD, con un focus operativo su monitoraggio delle presenze, verifica dell'apprendimento e predisposizione dei report.
+Echelon Italia supporta i Provider ECM nelle procedure necessarie per l'attribuzione dei crediti formativi professionali in eventi residenziali e in FAD, con un focus operativo su monitoraggio delle presenze, verifica dell'apprendimento e predisposizione dei report per Agenas. Echelon Italia non è provider ECM e non può accreditare eventi medico-scientifici presso la commissione ECM. Per informazioni scrivere a info@echelonitalia.it
 
 ## Approccio GREEN
 Impostazione orientata a una scelta GREEN per eliminare la documentazione cartacea: landing page dedicata al singolo evento o a un gruppo di eventi residenziali, per la compilazione della modulistica e il rilevamento presenze ai fini ECM.
@@ -10,10 +10,10 @@ Campi obbligatori e menu a tendina per raccogliere in modo preciso le informazio
 
 ## Questionario e Valutazione
 Questionario online a domande multiple, facile da compilare per il partecipante.
-Il Provider puo scaricare in tempo reale l'Excel con i risultati elaborati.
+Il Provider può scaricare in tempo reale l'Excel con i risultati elaborati.
 
 ## Report ECM
-Predisposizione del file XML per la rapportazione dell'evento.
+Predisposizione del file XML per la reportistica dell'evento.
 
 ## Altre funzioni ECM online
 - Controllo presenze con lettura del QR code (ingresso e uscita).
@@ -27,3 +27,5 @@ Per gli eventi residenziali e previsto un mini-sito dedicato al singolo evento p
 
 # Costo del servizio
 Per un preventivo ufficiale scrivere a info@echelonitalia.it indicando tutte le informazioni utili.
+
+

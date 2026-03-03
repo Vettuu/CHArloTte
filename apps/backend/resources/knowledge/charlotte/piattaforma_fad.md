@@ -1,6 +1,7 @@
 # Piattaforma FAD
 
 Echelon Italia propone una piattaforma per FAD E.C.M. dedicata ai Provider FAD ECM, strutturata per la formazione sincrona e asincrona.
+Echelon italia non è provider ECM e non può accreditare eventi medico-scientifici presso la commissione ECM. Per informazioni scrivere a info@echelonitalia.it
 
 ## Descrizione
 Piattaforma eLearning con dominio e grafica personalizzata, progettata per eventi ECM con tutti i requisiti richiesti dal Ministero per l'erogazione della formazione in modalita sincrona e asincrona.

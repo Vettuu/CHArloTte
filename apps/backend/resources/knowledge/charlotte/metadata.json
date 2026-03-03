@@ -5,16 +5,16 @@
     "title": "Echelon Italia - Overview aziendale",
     "tags": [
       "azienda",
-      "echelon",
+      "profilo",
+      "chi-siamo",
+      "supporto-eventi",
+      "tecnologia-eventi",
+      "logistica-eventi",
       "roma",
-      "innovazione",
-      "eventi",
-      "meeting",
-      "congressi",
-      "fiere",
-      "ecm"
+      "copertura-europa",
+      "contatti"
     ],
-    "summary": "Profilo aziendale di Echelon Italia: societa di Roma specializzata nell'innovazione per eventi, meeting, congressi, fiere ed ECM, con oltre 20 anni di esperienza e soluzioni chiavi in mano con assistenza in sede."
+    "summary": "Profilo aziendale di Echelon Italia: società con sede a Roma e oltre 20 anni di esperienza nel supporto tecnologico e logistico per eventi, meeting, congressi, fiere ed ECM. Non organizza direttamente eventi, ma affianca gli organizzatori con software, attrezzature e personale tecnico in sede, operando in Italia e in Europa."
   },
   {
     "id": "servizi-intro",
@@ -22,42 +22,55 @@
     "title": "Servizi Echelon Italia - panoramica",
     "tags": [
       "servizi",
-      "azienda",
+      "panoramica-servizi",
+      "supporto-tecnico-on-site",
+      "integrazione-gestionali",
+      "attrezzature-proprie",
+      "copertura-sedi",
       "eventi",
-      "meeting",
       "congressi",
       "fiere",
-      "ecm",
-      "luoghi-attivita",
-      "sedi"
+      "ecm"
     ],
-    "summary": "Panoramica dei principali servizi Echelon Italia per eventi: web e registrazioni, comunicazioni, e-commerce, segreteria, accredito, badge, presenze ECM, app, votazioni, placement, eventi online, FAD, modulistica ECM, e-poster e lead retrieval."
+    "summary": "Panoramica trasversale dei servizi Echelon Italia per eventi, congressi, fiere ed ECM: soluzioni web, registrazione, accredito, stampa badge, rilevazione presenze, app, votazioni, FAD, modulistica e lead retrieval. Echelon opera in Italia e all’estero con attrezzature e software proprietari, può integrarsi con gestionali del cliente (anche via API) e fornisce supporto tecnico-logistico in sede."
   },
   {
     "id": "siti-web-ecommerce",
     "file": "siti_web_ecommerce.md",
     "title": "Sito web evento, form iscrizione ed e-commerce",
     "tags": [
-      "siti web",
-      "form",
-      "registrazione",
-      "e-commerce",
-      "pagamenti"
+      "sito-evento",
+      "form-iscrizione",
+      "registrazione-online",
+      "raccolta-materiali",
+      "back-end-organizzatore",
+      "email-massive",
+      "ecommerce",
+      "pagamenti-online",
+      "integrazione-api",
+      "stima-costi"
     ],
-    "summary": "Siti web per eventi con programmi, relatori, form di iscrizione, raccolta materiali e moduli e-commerce; include back-end organizzatore, comunicazioni email e pagamenti online."
+    "summary": "Soluzione web completa per eventi: sito dedicato, form di iscrizione online, raccolta materiali (abstract/papers/poster/documenti), back-end organizzatore e comunicazioni email massive. Include modulo e-commerce con carrello e pagamenti online (Stripe, PayPal, Nexi), gestione bonifici, possibili integrazioni API con gestionali del cliente e formula di stima costi indicativa per i principali componenti."
   },
   {
     "id": "segreteria-organizzativa",
     "file": "segreteria organizzativa.md",
     "title": "Segreteria organizzativa",
     "tags": [
-      "segreteria",
-      "email",
-      "landing page",
+      "segreteria-organizzativa",
+      "invio-email-massivo",
+      "save-the-date",
+      "landing-page-evento",
       "recall",
-      "report"
+      "help-desk",
+      "qrcode",
+      "accredito-in-sede",
+      "rooming-list",
+      "piano-transfer",
+      "report-giornalieri",
+      "stima-costi"
     ],
-    "summary": "Servizi di segreteria organizzativa: invio massivo email, landing page, recall, back-end, help desk, invio QRCode e gestione wallet, con stime costi indicative."
+    "summary": "Servizio di segreteria organizzativa per eventi: invio massivo e-mail (Save the Date, inviti, reminder, conferme), landing page/sito per raccolta adesioni, recall e help desk dedicato. Include invio QRCode per accredito in sede, gestione logistica partecipanti (rooming list e piano transfer), report giornalieri e formula di stima costi indicativa con componenti operative."
   },
   {
     "id": "accredito-ipad",
@@ -65,160 +78,248 @@
     "title": "Accredito con iPad e controllo accessi",
     "tags": [
       "accredito",
+      "controllo-accessi",
       "ipad",
       "qrcode",
+      "barcode",
       "offline",
-      "controllo accessi"
+      "diritti-accesso",
+      "conteggio-presenze",
+      "presenze-ecm",
+      "server-cloud",
+      "wallet",
+      "stima-costi"
     ],
-    "summary": "Accredito rapido con iPad tramite QRCode o ricerca nominativo, lista cloud aggiornata, operativita offline, gestione accompagnatori e controllo accessi anche ECM, con stima costi indicativa."
+    "summary": "Servizio di accredito rapido e controllo accessi con iPad e app Controllo Accessi: lettura QRCode/Barcode, ricerca nominativo, verifica diritti di accesso e conteggio presenze in tempo reale. Il sistema opera anche offline con sincronizzazione cloud, supporta monitoraggio presenze ECM (ingressi/uscite), gestione accompagnatori e invio QRCode salvabile nel wallet. Include formula di stima costi indicativa (noleggio iPad, server, assistenza tecnica, spese escluse)."
   },
   {
     "id": "stampa-veloce-badge",
     "file": "stampa_veloce_badge.md",
     "title": "Stampa veloce badge on-site",
     "tags": [
-      "badge",
-      "stampa",
-      "qrcode",
+      "stampa-badge-on-site",
       "accredito",
-      "eco-friendly",
-      "totem"
+      "qrcode",
+      "totem-self-registration",
+      "postazioni-con-personale",
+      "badge-butterfly",
+      "eco-card",
+      "controllo-accessi",
+      "presenze",
+      "integrazione-api",
+      "assistenza-tecnica",
+      "stima-costi"
     ],
-    "summary": "Servizio di stampa badge on-site con postazioni e totem, QRCode per accredito veloce, materiali green e linee guida su volumi; include formula di stima indicativa."
+    "summary": "Servizio di stampa veloce badge on-site con accredito tramite QRCode, gestione in tempo reale dei partecipanti e registrazione presenze all’evento. Il modello operativo prevede postazioni con personale, totem self registration o soluzione mista, con integrazione possibile via API con il gestionale cliente. Include opzioni badge Butterfly ed Eco Card, linee guida su numero di postazioni/totem e formula di stima costi indicativa (postazioni/totem, badge, assistenza tecnica, spese escluse)."
   },
   {
     "id": "totem-multimediali",
     "file": "totem_multimediali.md",
     "title": "Totem Multimediali e software eTotem",
     "tags": [
-      "totem",
-      "self-registration",
-      "badge",
-      "qrcode",
-      "survey",
-      "attestati"
+  "totem-multimediali",
+  "self-registration",
+  "stampa-badge-self",
+  "controllo-accessi",
+  "qrcode",
+  "barcode",
+  "attestati-partecipazione",
+  "survey-touch-screen",
+  "information-point-ai",
+  "evote-on-site",
+  "assistenza-tecnica",
+  "stima-costi"
     ],
-    "summary": "Totem multimediali con software eTotem per self registration: stampa badge, QRCode, attestati, survey touch e info point con supporto AI, con assistenza tecnica in sede."
+    "summary": "Servizio Totem Multimediali per eventi con modalità self-service: accredito e stampa badge on-site, controllo accessi con QRCode/Barcode, invio o stampa attestati, survey touch screen e information point con supporto AI. I totem integrano hardware dedicato (touch screen, lettori, stampanti, RFID), prevedono assistenza tecnica in sede e possono essere personalizzati con grafica evento. Include formula di stima costi indicativa (totem, software, assistenza tecnica, spese escluse)."
   },
   {
     "id": "rilevazione-presenze-ecm",
     "file": "rilevazione_presenze_ecm.md",
     "title": "Rilevazione presenze ECM con RFID/UHF",
     "tags": [
-      "ecm",
-      "presenze",
-      "rfid",
-      "uhf",
-      "qrcode"
+  "rilevazione-presenze",
+  "controllo-accessi",
+  "ecm",
+  "rfid-uhf",
+  "portali-rfid",
+  "badge-rfid",
+  "qrcode",
+  "barcode",
+  "lettori-memoria-interna",
+  "postazioni-pc-lettore",
+  "report-presenze",
+  "stima-costi"
     ],
-    "summary": "Rilevamento presenze ECM con portale RFID UHF hands-free, report ingressi/uscite e alternative con QRCode o iPad per controllo accessi."
+    "summary": "Guida completa alle soluzioni Echelon per rilevazione presenze e controllo accessi, con focus su eventi ECM: portali RFID UHF hands-free, lettori QRCode/Barcode a memoria interna, iPad e postazioni PC+lettore. Il servizio include badge dedicati (RFID o green), report finali con ingressi/uscite e percentuali di permanenza, oltre a formule di stima costi indicative per le diverse modalità operative."
   },
   {
     "id": "gestione-posti-a-sedere",
     "file": "gestione_posti_a_sedere.md",
     "title": "Gestione posti a sedere e placement",
     "tags": [
-      "posti a sedere",
-      "placement",
-      "mappa sala",
-      "badge",
-      "controllo accessi"
+  "gestione-posti-a-sedere",
+  "placement",
+  "mappa-sala",
+  "fila-posto",
+  "posti-riservati",
+  "modifiche-last-minute",
+  "stampa-posto-su-badge",
+  "monitoraggio-presenze-tempo-reale",
+  "ipad-supporto-sala",
+  "export-excel",
+  "supporto-accredito",
+  "stima-costi"
     ],
-    "summary": "Software con mappa sala per assegnazione posti, modifiche last-minute, stampa posto sul badge ed export Excel; include controllo accessi con QRCode."
+    "summary": "Soluzione software per gestione posti a sedere riservati con mappa sala e placement per eventi, congressi, assemblee e cene. Consente assegnazione e modifica posti anche in fase di accredito, evidenza grafica di posti liberi/assegnati/occupati, stampa di fila e posto sul badge, supporto operativo con iPad e monitor dedicato, oltre a export Excel. Include formule di stima costi indicative come servizio extra abbinato ad accredito con iPad o stampa badge on-site."
   },
   {
     "id": "app-interattiva-evento",
     "file": "app_interattiva_evento.md",
     "title": "App interattiva evento",
     "tags": [
-      "app",
-      "networking",
-      "push",
-      "sondaggi",
-      "programma",
-      "intelligenza-artificiale"
+  "app-evento",
+  "app-nativa-ios-android",
+  "funzioni-offline",
+  "programma-agenda",
+  "notifiche-push",
+  "instant-poll",
+  "domande-dal-pubblico",
+  "networking-partecipanti",
+  "attestato-partecipazione",
+  "supporto-ai",
+  "back-end-contenuti",
+  "stima-costi"
     ],
-    "summary": "App evento nativa personalizzata con contenuti e funzioni interattive: networking, notifiche push, Q&A, instant poll, supporto AI, programma per topic, agenda, attestati e costi con formula indicativa."
+    "summary": "App interattiva nativa iOS/Android per eventi con contenuti aggiornabili da back-end e funzionalità operative anche offline. Include programma/agenda personalizzata, notifiche push, instant poll, domande dal pubblico, networking tra partecipanti, relatori, luoghi di interesse, download attestato e supporto AI per ricerca rapida informazioni. È personalizzabile per singolo evento (grafica e funzioni) e prevede formula di stima costi indicativa con funzioni base/extra, assistenza tecnica e spese escluse."
   },
   {
-    "id": "votazioni-televoto",
-    "file": "votazioni_televoto.md",
+    "id": "televotazioni",
+    "file": "televotazioni.md",
     "title": "Votazioni con telecomandi (televoto)",
     "tags": [
-      "votazioni",
-      "televoto",
-      "telecomandi",
-      "sondaggi"
+  "televotazioni",
+  "televoto-aula",
+  "televoter",
+  "telecomandi-wireless",
+  "votazioni-mozioni",
+  "approvazione-bilancio",
+  "modifiche-statutarie",
+  "sondaggi-live",
+  "verifica-apprendimento",
+  "risultati-tempo-reale",
+  "report-votazioni",
+  "stima-costi"
     ],
-    "summary": "Sistema di televotazione con telecomandi per votazioni in aula, risultati in tempo reale e integrazione nelle slide; adatto a mozioni, bilanci e sondaggi."
+    "summary": "Servizio di televotazione elettronica per eventi, congressi e assemblee, con focus su sistema in aula tramite telecomandi (televoter) e risultati in tempo reale. Supporta votazioni formali (mozioni, statuti, bilanci) e interazioni con il pubblico (sondaggi, verifiche di apprendimento, casi clinici), con report finale delle preferenze espresse. Include caratteristiche tecniche del sistema radio, linee operative e formula di stima costi indicativa (votatori, server, assistenza tecnica, spese escluse)."
   },
   {
-    "id": "e-vote-elezioni",
-    "file": "e_vote_elezioni.md",
-    "title": "E-vote per elezioni online e on-site",
+    "id": "elezioni",
+    "file": "elezioni.md",
+    "title": "Elezioni online e on-site",
     "tags": [
-      "e-vote",
-      "elezioni",
-      "associazioni",
-      "voto online",
-      "segretezza",
-      "scrutinio"
+  "elezioni",
+  "evote",
+  "votazioni-online",
+  "votazioni-on-site",
+  "votazioni-miste",
+  "seggio-elettronico",
+  "cariche-elettive",
+  "societa-scientifiche",
+  "associazioni",
+  "anonimato-voto",
+  "scrutinio-tempo-reale",
+  "deleghe",
+  "qrcode",
+  "percorsi-di-voto",
+  "risultati-pdf-excel",
+  "preventivi"
     ],
-    "summary": "Seggio elettorale elettronico per elezioni online, on-site o miste, con credenziali personali, percorsi di voto, segretezza del voto e scrutinio immediato."
+    "summary": "Servizio E-vote di Echelon Italia per elezioni di cariche elettive in modalità online, on-site o mista, con gestione aventi diritto, percorsi di voto personalizzati, segretezza/anonimato, supporto tecnico e scrutinio immediato. Include regole operative (deleghe, credenziali, Qrcode, finestre temporali di voto), casi d’uso reali e formule di stima indicative dei costi per ciascuna modalità, con conferma commerciale finale su preventivo."
   },
   {
     "id": "piattaforma-fad",
     "file": "piattaforma_fad.md",
     "title": "Piattaforma FAD ECM",
     "tags": [
-      "fad",
-      "ecm",
-      "elearning",
-      "scorm",
-      "webinar",
-      "zoom"
+  "piattaforma-fad",
+  "fad-ecm",
+  "provider-ecm",
+  "formazione-sincrona",
+  "formazione-asincrona",
+  "elearning",
+  "scorm",
+  "agenas",
+  "webinar",
+  "zoom-integrato",
+  "help-desk",
+  "attestati",
+  "questionari",
+  "supporto-tecnico"
     ],
-    "summary": "Piattaforma FAD ECM per formazione sincrona e asincrona con gestione eventi, SCORM, webinar, e-commerce e Zoom integrato."
+    "summary": "Piattaforma FAD ECM di Echelon Italia per provider, con formazione sincrona e asincrona, dominio/grafica personalizzati e gestione operativa completa degli eventi (contenuti, iscritti, inviti, questionari, attestati, assistenza). Include funzioni SCORM, webinar con regia tecnica, Zoom integrato e modulo e-commerce; Echelon non è provider ECM e non accredita direttamente gli eventi."
   },
   {
     "id": "modulistica-ecm-online",
     "file": "modulistica_ecm_online.md",
     "title": "Modulistica ECM online",
     "tags": [
-      "ecm",
-      "modulistica",
-      "questionari",
-      "report",
-      "qrcode",
-      "attestati"
+  "modulistica-ecm-online",
+  "ecm",
+  "eventi-residenziali",
+  "fad",
+  "anagrafica",
+  "questionario-ecm",
+  "valutazione-evento",
+  "report-agenas",
+  "xml-ecm",
+  "rilevazione-presenze",
+  "attestati",
+  "approccio-green",
+  "landing-page-ecm"
     ],
-    "summary": "Soluzioni online per modulistica ECM: anagrafica, questionari, report XML, controllo presenze via QRCode, attestati e supporto webinar."
+    "summary": "Servizio di modulistica ECM online per provider, con gestione anagrafica, questionari e valutazione, rilevazione presenze via QR code, attestati scaricabili e predisposizione report XML per Agenas. Soluzione orientata al paperless (approccio green) per eventi residenziali e FAD, supportata da esperienza operativa su processi ECM; Echelon non accredita direttamente gli eventi."
   },
   {
     "id": "raccolta-papers-eposter",
     "file": "raccolta_papers_eposter.md",
     "title": "Raccolta papers ed e-poster",
     "tags": [
-      "e-poster",
-      "papers",
-      "abstract",
-      "valutazione",
-      "monitor",
-      "qrcode"
+  "raccolta-papers",
+  "eposter",
+  "contributi-scientifici",
+  "call-for-abstract",
+  "upload-contributi",
+  "valutazione-scientifica",
+  "comitato-scientifico",
+  "classificazione-lavori",
+  "back-end-organizzatore",
+  "visualizzazione-poster",
+  "ricerca-per-autore",
+  "ricerca-per-argomento",
+  "preventivi"
     ],
-    "summary": "Piattaforma per raccolta e valutazione di e-poster e papers con back-end, monitor in sede, ricerca per autore e download via QRCode."
+    "summary": "Piattaforma per raccolta online e gestione di papers/e-poster con accesso autori, upload e aggiornamento contributi, metadati per ricerca e back-end organizzatore per monitoraggio. Include modulo di valutazione da comitato scientifico con scoring/classificazione, visualizzazione in sede su monitor dedicati con ricerca per autore/argomento e download via QR code; presenti formule di stima indicative per opzione completa o solo monitor in evento."
   },
   {
     "id": "lead-retrieval-system",
     "file": "lead_retrieval_system.md",
     "title": "Lead Retrieval System per espositori",
     "tags": [
-      "lead retrieval",
-      "espositori",
-      "sponsor",
-      "qrcode",
-      "app"
+  "lead-retrieval-system",
+  "lead-retrieval",
+  "espositori",
+  "sponsor",
+  "fiere",
+  "congressi",
+  "raccolta-contatti",
+  "scansione-qrcode",
+  "badge",
+  "app-stand",
+  "lettori-memoria-interna",
+  "report-tempo-reale",
+  "dati-visitatori",
+  "assistenza-tecnica"
     ],
-    "summary": "Sistema di raccolta dati per espositori con app o lettori barcode, report in tempo reale, funzionamento offline e assistenza in sede."
+    "summary": "Servizio Lead Retrieval System per espositori e sponsor in congressi/fiere, finalizzato alla raccolta contatti visitatori tramite scansione QR code su badge. Prevede due modalità operative (app dedicata con report in tempo reale o lettori a memoria interna con export a fine evento), utilizzo anche per presenze a workshop/corsi e supporto tecnico in sede; include formule di stima indicative con conferma commerciale finale."
   }
 ]

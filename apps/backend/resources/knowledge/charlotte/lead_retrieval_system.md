@@ -8,11 +8,11 @@ Lead Retrieval System per congressi e fiere, ossia un insieme di sistemi di racc
 - B) lettori a memoria interna
 
 ### A) app dedicata al lead retrieval system
-L'app per espositori, consente allo standista di utilizzare il proprio device, con una password personale di accesso, per scaricare il report in tempo reale con i dati dei visitatori. L'app permette di acquisire i dati del sivitatore dello stand con la semplice lettura del QR code posto sul badge del partecipante, con disponibilita di report immediato tramite credenziali personali. I dati ottenibili in tempo reale sono quelli che l'organizzazione decide di condividere.
+L'app per espositori, consente allo standista di utilizzare il proprio device, con una password personale di accesso, per scaricare il report in tempo reale con i dati dei visitatori. L'app permette di acquisire i dati del visitatore dello stand con la semplice lettura del QR code posto sul badge del partecipante, con disponibilità di report immediato tramite credenziali personali. I dati ottenibili in tempo reale sono quelli che l'organizzazione decide di condividere.
 L'app può essere utilizzata dall'azienda sponsor anche per prendere le presenze a workshop, corsi, riunioni da essa organizzati all'interno dell'evento.
 
 ### B) lettori a memoria interna
-Gli espositori possono noleggiare dei lettori di barcode a memoria interna per scansionare il barcode posto sul badge del partecipante. A fine evento, riconsegnando il lettore, l'espositore potrà ottenere l'elenco dei nominativi dei visitatori dello stand, completo dei dati che l'organizzatore vorrà condividere.Noleggio lettori a memoria interna, strumento semplice e pronto da usare.
+Gli espositori possono noleggiare dei lettori di Barcode a memoria interna per scansionare il Barcode posto sul badge del partecipante. A fine evento, riconsegnando il lettore, l'espositore potrà ottenere l'elenco dei nominativi dei visitatori dello stand, completo dei dati che l'organizzatore vorrà condividere. Noleggio lettori a memoria interna, strumento semplice e pronto da usare.
 I lettori possono essere utilizzati dall'azienda sponsor anche per prendere le presenze a workshop, corsi, riunioni da essa organizzati all'interno dell'evento.
 
 ### Vantaggi della App
@@ -53,5 +53,6 @@ Esempi: 1 stand = 160 euro; 2 stand = 320 euro
 **Costo assistenza tecnica = 350 euro x giorni di assistenza** (1 tecnico).  
 
 #### Spese escluse
-Viaggio, vitto e alloggio **fuori Roma** sono esclusi dal calcolo e devono essere quotati da un commerciale.
+Viaggio, vitto e alloggio, **fuori Roma** sono esclusi dal calcolo e devono essere quotati da un commerciale.
+
 

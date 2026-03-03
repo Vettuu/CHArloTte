@@ -87,6 +87,9 @@ class KnowledgeSearchService
                 'match_ratio' => data_get($document, 'keyword_match.match_ratio'),
                 'direct_needle_match' => data_get($document, 'keyword_match.direct_needle_match'),
                 'strong_term_match' => data_get($document, 'keyword_match.strong_term_match'),
+                'matched_terms' => data_get($document, 'keyword_match.matched_terms', []),
+                'query_terms' => data_get($document, 'keyword_match.query_terms', []),
+                'strong_matched_terms' => data_get($document, 'keyword_match.strong_matched_terms', []),
             ])
             ->all();
         $candidateDocuments = $keywordResults

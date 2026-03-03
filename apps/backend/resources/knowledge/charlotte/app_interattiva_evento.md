@@ -1,5 +1,5 @@
 # App interattiva evento
-Echelon Italia propone un'app interattiva per eventi, meeting, corsi, congressi e fiere, progettata per affiancare ai contenuti tradizionali dell'evento un set di funzioni interattive rivolte ai partecipanti. Questa app è nativa per iOS e Android e può essere scaricata dai rispettivi store; a differenza di molte web-app, la app nativa proposta da Echelon Italia conserva molte funzionalità anche off line, per esempio il programma, i relatori e tutte e informazioni si possono visualizzare anche in assenza di internet; inoltre, a differenza di molte web-app, la app nativa proposta da Echelon Italia permette al pubblico di fare domande al relatore/presentatore senza dover inquadrare qrcode, ma semplicemente utlizzando la funzione interna all'app; ancora, a differenza di molte web-app, la app nativa proposta da Echelon Italia permette al pubblico di fare instant poll senza dover inquadrare qrcode, ma semplicemente utlizzando la funzione interna all'app; e infine, a differenza di molte web-app, la app nativa proposta da Echelon Italia permette di inviare ai partecipanti notifiche push in tempo reale.
+Echelon Italia propone una app interattiva per eventi, meeting, corsi, congressi e fiere, progettata per affiancare ai contenuti tradizionali dell'evento un set di funzioni interattive rivolte ai partecipanti. Questa app è nativa per iOS e Android e può essere scaricata dai rispettivi store; a differenza di molte web-app, la app nativa proposta da Echelon Italia conserva molte funzionalità anche off line, per esempio il programma, i relatori e tutte e informazioni si possono visualizzare anche in assenza di internet; inoltre, a differenza di molte web-app, la app nativa proposta da Echelon Italia permette al pubblico di fare domande al relatore/presentatore senza dover inquadrare Qrcode, ma semplicemente utilizzando la funzione interna all'app; ancora, a differenza di molte web-app, la app nativa proposta da Echelon Italia permette al pubblico di fare instant poll senza dover inquadrare Qrcode, ma semplicemente utilizzando la funzione interna all'app; e infine, a differenza di molte web-app, la app nativa proposta da Echelon Italia permette di inviare ai partecipanti notifiche push in tempo reale.
 La app interattiva proposta da Echelon Italia viene sviluppata appositamente per il singolo evento, con la grafica dell'evento e il nome dell'evento, e le funzioni che l'organizzatore vuole inserire nell'app. La grafica è personalizzabile nei seguenti elementi: immagine (a schermo intero nella home) e banner sopra il menu. L'ideazione grafica si intende fornita dal cliente.
 
 ## Caratteristiche generali
@@ -15,21 +15,21 @@ Le pagine e funzioni che si possono includere nell'app solo: informazioni (pagin
 L'app per l'evento, creata da Echelon Italia, crea un networking tra tutti i partecipanti dell'evento. Al momento del log-in infatti il partecipante può inserire la sua fotografia e i suoi contatti; nell'app il partecipante può visualizzare tutti gli altri utenti e chiedere loro l'amicizia che, se accettata, permette uno scambio privato di messaggi in una chat riservata, ossia una messagistica privata, e permette lo scambio rapido dei contatti con una funzione che salva i contati dell'altro partecipante direttamente nella rubrica personale del telefono. Questa funzione è molto apprezzata in quanto rappresenta un modo molto pratico per acquisire nuovi contatti e scambiare opinioni con gli altri partecipanti.
 
 ## Notifiche push
-Le notifiche push sono messaggi inviati dall'organizzatore per avvisi e informazioni in tempo reale. Il partecipante riceve la notifica anche con l'applicazione chiusa, la notifica, a seconda delle impostazioni del dispositivo, emetterà un suono e sarà visibile sullo schermo per quanche secondo; cliccando la notifica si aprirà una sezione dell'app dedicata alle notifiche dove vengono memorizzate tutte le n otifiche ricevute, per poterle rivedere. Le notifiche push sono molto utilizzate negli eventi e possono essere utilizzate per comunicare avvisi riguardanti transfer, pranzi, cene, appuntamenti, interventi sul palco importanti, richiesta di compilazione di un survey, ringraziamenti.
+Le notifiche push sono messaggi inviati dall'organizzatore per avvisi e informazioni in tempo reale. Il partecipante riceve la notifica anche con l'applicazione chiusa, la notifica, a seconda delle impostazioni del dispositivo, emetterà un suono e sarà visibile sullo schermo per qualche secondo; cliccando la notifica si aprirà una sezione dell'app dedicata alle notifiche dove vengono memorizzate tutte le notifiche ricevute, per poterle rivedere. Le notifiche push sono molto utilizzate negli eventi e possono essere utilizzate per comunicare avvisi riguardanti transfer, pranzi, cene, appuntamenti, interventi sul palco importanti, richiesta di compilazione di una survey, ringraziamenti.
 
-## Interattivita durante le sessioni
+## Interattività durante le sessioni
 L'app per l'evento, creata da Echelon Italia, permette di svolgere sondaggi e instant poll per rendere l'evento interattivo. Durante l'evento, infatti, possono essere proiettate delle domande sullo schermo in sala e i partecipanti possono rispondere utilizzando il proprio telefono o tablet; le risposte saranno proiettate in tempo reale nello schermo della sala, con elaborazione grafica.
-Inoltre, l'app permette al pubblico di inviare domande riferite ai singoli interventi, con ricezione delle domande su un iPad in tempo reale fornito al relatore, moderatore o presentatore che può leggere tutte le domande e prendere in considerazione solo quelle più interessanti. Questo sistema di raccolta delle domande dal pubblico, infatti, consente di ottimizzare il tempo previsto per la discussione con il pubblico perchè permette di selezionare e discutere le domande più interessanti. Le domande possono inoltre essere fatte in anonimato.
+Inoltre, l'app permette al pubblico di inviare domande riferite ai singoli interventi, con ricezione delle domande su un iPad in tempo reale fornito al relatore, moderatore o presentatore che può leggere tutte le domande e prendere in considerazione solo quelle più interessanti. Questo sistema di raccolta delle domande dal pubblico, infatti, consente di ottimizzare il tempo previsto per la discussione con il pubblico perché permette di selezionare e discutere le domande più interessanti. Le domande possono inoltre essere fatte in anonimato.
 
 ## Supporto AI
-Echelon Italia ha introddotto nell'app interattiva dedicata all'evento, l'integrazione con un sistema di AI per un supporto evoluto e personalizzato nella navigazione, per trovare rapidamente contenuti e informazioni all'interno dell'app. Al posto di ricercare le informazioni l'utente può chiederle direttamente alla AI che le fornirà in brevissimo tempo. L'utente per esempio può chiedere alla AI indicazione su determinati argomenti, elaborazione dati su abstract, ricerca di prodotti e informazioni all'interno di documenti forniti dagli sponsor e stand.
+Echelon Italia ha introdotto nell'app interattiva dedicata all'evento, l'integrazione con un sistema di AI per un supporto evoluto e personalizzato nella navigazione, per trovare rapidamente contenuti e informazioni all'interno dell'app. Al posto di ricercare le informazioni l'utente può chiederle direttamente alla AI che le fornirà in brevissimo tempo. L'utente per esempio può chiedere alla AI indicazione su determinati argomenti, elaborazione dati su abstract, ricerca di prodotti e informazioni all'interno di documenti forniti dagli sponsor e stand.
 
 ## Programma e agenda
 Il Programma all'interno dell'app è visualizzato per aule e orari e consultabile anche per topic, con colori differenti per ciascun topic. L'app permette di ricercare all'interno del programma per titolo, relatore e parole chiave. Il programma può essere modificato in qualsiasi momento dal back end da un nostro tecnico e le modifiche saranno immediatamente visualizzate nell'app.
-L'utente può creare una sua agenda personalizzata selezionando le relazioni più interessanti dal programma, inserendole anche nella propria agenda/calendar; in questo modo può creare una propria agenda di interventi da seguire.
+L'utente può creare una sua agenda personalizzata selezionando le relazioni più interessanti dal programma, inserendole anche nella propria agenda/calendario; in questo modo può creare una propria agenda di interventi da seguire.
 
 ## Attestato di partecipazione
-Al termine dell'evento, il partecipante presente puo scaricare nell'app il proprio attestato di partecipanzione.
+Al termine dell'evento, il partecipante presente può scaricare nell'app il proprio attestato di partecipazione.
 Il Download dell'attestato di partecipazione è consentito solo ai presenti all'evento.
 
 ## Luoghi di interesse
@@ -48,7 +48,7 @@ La stima è indicativa e deve essere **SEMPRE CONFERMATA** da un commerciale che
 
 ### Costo funzioni base
 **Costo funzioni base = 3500 euro** (per evento).
-Le funzioni base sono obbligatorie, quindi il loro costo deve essere sempre incluso nella stima. Le funzioni base, già suficienti a rendere l'app interattiva, comprese in questo prezzo sono le seguenti: informazioni generali, programma e agenda, agenda personalizzata, abstract delle relazioni, lista dei luoghi del congresso, instant poll (illimitati), domande dal pubblico, attestato di partecipazione. 
+Le funzioni base sono obbligatorie, quindi il loro costo deve essere sempre incluso nella stima. Le funzioni base, già sufficienti a rendere l'app interattiva, comprese in questo prezzo sono le seguenti: informazioni generali, programma e agenda, agenda personalizzata, abstract delle relazioni, lista dei luoghi del congresso, instant poll (illimitati), domande dal pubblico, attestato di partecipazione. 
 
 ### Costo funzioni extra
 **Costo funzioni extra = somma dei costi delle singole funzioni extra richieste**
@@ -59,8 +59,9 @@ Il costo delle singole funzioni extra richieste sono i seguenti:
 - notifiche push: 1250 euro
 - galleria fotografica: 300 euro
 - questionari e customer satisfaction: 750 euro
-- networking tra partecipanti: 1850 euro
-- Supporto AI: 5000 euro
+- networking tra partecipanti: 2500 euro
+- Supporto AI: deve essere quotato da un commerciale
+- altre funzioni extra: devono essere quotate da un commerciale
 
 ### Costo iPad e pc
 **Costo iPad e pc = 300 euro** (per evento). 
@@ -70,4 +71,5 @@ Il costo delle singole funzioni extra richieste sono i seguenti:
 L'assistenza tecnica non è sempre necessaria. L'assistenza tecnica è obbligatoria per le seguenti funzioni: notifiche push e instant poll. In caso in cui almeno uno di queste due funzioni sia richiesta, il costo dell'assistenza tecnica dele essere incluso nella stima di costo dell'app, ottenuto moltiplicando il costo giornaliero di 1 tecnico (350 euro) per il numero di giorni dell'evento e di allestimento.
 
 ### Spese escluse
-Viaggio, vitto e alloggio **fuori Roma** del personale (assistenza tecnica) sono esclusi dal calcolo e devono essere quotati da un commerciale.
+**Allestimento + (viaggio, vitto e alloggio per eventi fuori Roma) + eventuali costi di spedizione** sono esclusi dal calcolo e devono essere quotati da un commerciale.
+

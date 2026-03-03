@@ -252,11 +252,16 @@ class KnowledgeRepository
      *   match_ratio: float,
      *   direct_needle_match: bool,
      *   strong_term_match: bool,
+     *   matched_terms: array<int, string>,
+     *   query_terms: array<int, string>,
+     *   strong_matched_terms: array<int, string>,
      *   keyword_score: float
      * }
      */
     private function matchAnalysis(string $haystack, Collection $tokens, string $needle): array
     {
+        $queryTerms = $tokens->values()->all();
+
         if ($haystack === '') {
             return [
                 'matched' => false,
@@ -265,6 +270,9 @@ class KnowledgeRepository
                 'match_ratio' => 0.0,
                 'direct_needle_match' => false,
                 'strong_term_match' => false,
+                'matched_terms' => [],
+                'query_terms' => $queryTerms,
+                'strong_matched_terms' => [],
                 'keyword_score' => 0.0,
             ];
         }
@@ -274,6 +282,7 @@ class KnowledgeRepository
             $totalTokens = $tokens->count();
             $matchedTokens = $totalTokens;
             $ratio = $totalTokens > 0 ? 1.0 : 0.0;
+            $matchedTerms = $queryTerms;
 
             return [
                 'matched' => true,
@@ -282,6 +291,9 @@ class KnowledgeRepository
                 'match_ratio' => $ratio,
                 'direct_needle_match' => true,
                 'strong_term_match' => false,
+                'matched_terms' => $matchedTerms,
+                'query_terms' => $queryTerms,
+                'strong_matched_terms' => [],
                 'keyword_score' => $this->computeKeywordScore(
                     matchRatio: $ratio,
                     matchedTokens: $matchedTokens,
@@ -299,19 +311,24 @@ class KnowledgeRepository
                 'match_ratio' => 0.0,
                 'direct_needle_match' => $directNeedleMatch,
                 'strong_term_match' => false,
+                'matched_terms' => [],
+                'query_terms' => $queryTerms,
+                'strong_matched_terms' => [],
                 'keyword_score' => 0.0,
             ];
         }
 
         $totalTokens = $tokens->count();
-        $matchedTokens = $tokens
+        $matchedTerms = $tokens
             ->filter(fn (string $token): bool => str_contains($haystack, $token))
-            ->count();
+            ->values();
+        $matchedTokens = $matchedTerms->count();
 
         $minTokensForRatio = max(1, (int) config('knowledge.keyword_min_tokens_for_ratio', 2));
         $minMatchRatio = max(0.0, min(1.0, (float) config('knowledge.keyword_min_match_ratio', 0.50)));
         $matchRatio = $totalTokens > 0 ? ($matchedTokens / $totalTokens) : 0.0;
         $strongTermMatch = false;
+        $strongMatchedTerms = [];
 
         // Query molto corte: basta un match utile.
         if ($totalTokens < $minTokensForRatio) {
@@ -322,6 +339,9 @@ class KnowledgeRepository
                 'match_ratio' => round($matchRatio, 3),
                 'direct_needle_match' => $directNeedleMatch,
                 'strong_term_match' => false,
+                'matched_terms' => $matchedTerms->all(),
+                'query_terms' => $queryTerms,
+                'strong_matched_terms' => [],
                 'keyword_score' => $this->computeKeywordScore(
                     matchRatio: $matchRatio,
                     matchedTokens: $matchedTokens,
@@ -339,6 +359,9 @@ class KnowledgeRepository
                 'match_ratio' => round($matchRatio, 3),
                 'direct_needle_match' => $directNeedleMatch,
                 'strong_term_match' => false,
+                'matched_terms' => $matchedTerms->all(),
+                'query_terms' => $queryTerms,
+                'strong_matched_terms' => [],
                 'keyword_score' => $this->computeKeywordScore(
                     matchRatio: $matchRatio,
                     matchedTokens: $matchedTokens,
@@ -360,8 +383,11 @@ class KnowledgeRepository
                 ->values();
 
             if ($queryStrongTerms->isNotEmpty()) {
-                $hasStrongTermMatch = $queryStrongTerms
-                    ->contains(fn (string $token): bool => str_contains($haystack, $token));
+                $strongMatchedTerms = $queryStrongTerms
+                    ->filter(fn (string $token): bool => str_contains($haystack, $token))
+                    ->values()
+                    ->all();
+                $hasStrongTermMatch = $strongMatchedTerms !== [];
                 $strongTermMatch = $hasStrongTermMatch;
 
                 // Boost moderato: se c'è almeno un termine forte, accetta con ratio leggermente più basso.
@@ -374,6 +400,9 @@ class KnowledgeRepository
                         'match_ratio' => round($matchRatio, 3),
                         'direct_needle_match' => $directNeedleMatch,
                         'strong_term_match' => true,
+                        'matched_terms' => $matchedTerms->all(),
+                        'query_terms' => $queryTerms,
+                        'strong_matched_terms' => $strongMatchedTerms,
                         'keyword_score' => $this->computeKeywordScore(
                             matchRatio: $matchRatio,
                             matchedTokens: $matchedTokens,
@@ -392,6 +421,9 @@ class KnowledgeRepository
             'match_ratio' => round($matchRatio, 3),
             'direct_needle_match' => $directNeedleMatch,
             'strong_term_match' => $strongTermMatch,
+            'matched_terms' => $matchedTerms->all(),
+            'query_terms' => $queryTerms,
+            'strong_matched_terms' => $strongMatchedTerms,
             'keyword_score' => $this->computeKeywordScore(
                 matchRatio: $matchRatio,
                 matchedTokens: $matchedTokens,
