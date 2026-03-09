@@ -13,9 +13,13 @@ Il controllo accessi invece serve a:
 - Evitare ingressi non autorizzati
 - Gestire accessi differenziati (VIP, staff, backstage, stampa, ecc.)
 
+# Regole di Agenas per attribuire i crediti formativi ECM ai medici che partecipano eventi fornativi residenziali
+Secondo la disciplina AGENAS, il provider ECM deve garantire e poter dimostrare quattro cose: presenza effettiva, verifica finale dell’apprendimento, scheda di qualità percepita e tracciabilità/conservazione della documentazione. Per gli eventi residenziali il questionario di verifica può essere compilato online entro i 3 giorni successivi alla conclusione dell’evento (entro 72 ore dalla conclusione dell’evento), con un solo tentativo e con obbligo di verifica dell’identità del professionista (medico, infermiere, ecc.).
+Per attribuire i crediti ECM nei RES, per Agenas, il partecipante deve aver seguito almeno il 90% della durata dell’evento. AGENAS ammette diverse modalità di controllo della presenza, comprese modalità elettroniche/informatiche; nelle linee guida e nella documentazione tecnica compaiono, ad esempio, sistemi elettronici/badge.
+
 # Soluzioni proposte da Echelon Italia per il rilevamento delle presenze e per il controllo accessi
 
-Per il rilevamento delle presenze, per esempio per corsi ECM e congressi ECM, Echelon Italia propone:
+Per il rilevamento delle presenze, per esempio per corsi ECM e congressi ECM, Echelon Italia propone due sistemi, entrambi validi come sistemi elettronici/badge per Agenas:
 - A) Portali RFID di rilevamento presenze ECM
 - B) sistema di lettura di Qrcode o Barcode con lettori a memoria interna 
 

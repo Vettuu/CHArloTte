@@ -235,6 +235,8 @@ class ChatRespondController extends Controller
                 'diagnostic_hit_refs' => $diagnosticHitRefs,
                 'keyword_candidates_count' => $keywordCandidates->count(),
                 'keyword_candidates' => $keywordCandidates->all(),
+                'latency_ms' => $latencyMs,
+                'reply_len' => mb_strlen($finalReply),
                 'reply' => $finalReply,
                 'web_search' => [
                     'enabled' => false,
@@ -328,6 +330,8 @@ class ChatRespondController extends Controller
                 'diagnostic_hit_refs' => $diagnosticHitRefs,
                 'keyword_candidates_count' => $keywordCandidates->count(),
                 'keyword_candidates' => $keywordCandidates->all(),
+                'latency_ms' => $latencyMs,
+                'reply_len' => mb_strlen($finalReply),
                 'reply' => $finalReply,
                 'web_search' => [
                     'enabled' => false,
@@ -355,10 +359,7 @@ class ChatRespondController extends Controller
         $temperature = (float) config('models.pipelines.text.temperature', 0.3);
         $maxOutputTokens = (int) config('models.pipelines.text.max_output_tokens', 800);
         $webSearch = (array) config('models.pipelines.text.web_search', []);
-        $shouldUseWebSearch = $this->shouldUseWebSearch($intent, $webSearch, $policy);
-        $webSearchConfig = $shouldUseWebSearch
-            ? $webSearch
-            : array_merge($webSearch, ['enabled' => false]);
+        $webSearchConfig = $this->resolveWebSearchConfig($intent, $webSearch, $policy);
 
         try {
             $result = $this->text->respond(
@@ -448,6 +449,8 @@ class ChatRespondController extends Controller
             'diagnostic_hit_refs' => $diagnosticHitRefs,
             'keyword_candidates_count' => $keywordCandidates->count(),
             'keyword_candidates' => $keywordCandidates->all(),
+            'latency_ms' => $latencyMs,
+            'reply_len' => mb_strlen($replyText),
             'reply' => $result['text'],
             'web_search' => [
                 'enabled' => (bool) ($webSearchConfig['enabled'] ?? false),
@@ -574,17 +577,41 @@ class ChatRespondController extends Controller
         return 'core_info';
     }
 
-    private function shouldUseWebSearch(string $intent, array $webSearch, array $policy): bool
+    private function resolveWebSearchConfig(string $intent, array $webSearch, array $policy): array
     {
         if (($webSearch['enabled'] ?? false) !== true) {
-            return false;
+            return array_merge($webSearch, [
+                'enabled' => false,
+                'allowed_domains' => [],
+            ]);
         }
 
         $allowedIntents = collect($policy['web_search_intents'] ?? ['showcase_web'])
             ->filter(fn ($value) => is_string($value) && trim($value) !== '')
+            ->map(fn ($value) => trim((string) $value))
             ->values();
 
-        return $allowedIntents->contains($intent);
+        $alwaysDomains = collect($webSearch['always_allowed_domains'] ?? [])
+            ->filter(fn ($value) => is_string($value) && trim($value) !== '')
+            ->map(fn ($value) => trim((string) $value))
+            ->values();
+
+        $showcaseDomains = collect($webSearch['showcase_allowed_domains'] ?? [])
+            ->filter(fn ($value) => is_string($value) && trim($value) !== '')
+            ->map(fn ($value) => trim((string) $value))
+            ->values();
+
+        $domains = $alwaysDomains;
+        if ($allowedIntents->contains($intent)) {
+            $domains = $domains->concat($showcaseDomains);
+        }
+
+        $domains = $domains->unique()->values()->all();
+
+        return array_merge($webSearch, [
+            'enabled' => $domains !== [],
+            'allowed_domains' => $domains,
+        ]);
     }
 
     /**

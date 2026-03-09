@@ -137,6 +137,26 @@ return [
                         'echelonitalia.it,instagram.com,facebook.com,linkedin.com'
                     ))
                 ))),
+
+                // Domini sempre interrogabili in aggiunta al RAG (anche senza intent showcase).
+                // Uso consigliato: sito ufficiale + Linkedin ufficiale.
+                'always_allowed_domains' => array_values(array_filter(array_map(
+                    'trim',
+                    explode(',', (string) env(
+                        'OPENAI_TEXT_WEB_SEARCH_ALWAYS_ALLOWED_DOMAINS',
+                        'echelonitalia.it,linkedin.com'
+                    ))
+                ))),
+
+                // Domini solo per intent showcase_web (esempi visuali/case/eventi passati).
+                // Uso consigliato: social visuali.
+                'showcase_allowed_domains' => array_values(array_filter(array_map(
+                    'trim',
+                    explode(',', (string) env(
+                        'OPENAI_TEXT_WEB_SEARCH_SHOWCASE_ALLOWED_DOMAINS',
+                        'instagram.com,facebook.com'
+                    ))
+                ))),
             ],
         ],
     ],

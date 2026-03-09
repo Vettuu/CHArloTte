@@ -80,6 +80,9 @@ async function fetchRealtimeToken(mode: "text" | "audio", tenant?: string) {
 }
 
 type TextRespondPayload = {
+  tenant?: {
+    knowledge_tenant?: string | null;
+  } | null;
   session_id?: string | null;
   model?: string | null;
   intent?: string | null;
@@ -89,9 +92,14 @@ type TextRespondPayload = {
   contradiction_flag?: boolean | null;
   fallback?: boolean;
   rag_hits?: number;
+  query_token_count?: number;
+  semantic_level?: string | null;
   top_score?: number | null;
+  latency_ms?: number | null;
+  reply_len?: number | null;
   rag_hit_scores?: number[];
   rag_hit_refs?: RagHitRef[];
+  diagnostic_hit_refs?: RagHitRef[];
   reply?: string | null;
   web_search?: {
     enabled?: boolean;
@@ -746,6 +754,7 @@ export default function Home() {
         });
 
         const responseRagRefs = payload.rag_hit_refs ?? payload.sources ?? [];
+        const responseDiagnosticRefs = payload.diagnostic_hit_refs ?? [];
         const responseRagScores = payload.rag_hit_scores
           ?? responseRagRefs
             .map((source) => source.score)
@@ -763,14 +772,22 @@ export default function Home() {
           metadata: {
             pipeline: "text",
             model: payload.model ?? model,
+            knowledge_tenant: payload.tenant?.knowledge_tenant ?? null,
             fallback: payload.fallback ?? false,
             rag_hits: payload.rag_hits ?? 0,
             top_score: payload.top_score ?? null,
+            latency_ms: payload.latency_ms ?? null,
+            reply_len: payload.reply_len ?? null,
             rag_hit_scores: responseRagScores,
             rag_hit_refs: responseRagRefs,
+            accepted_hits_count: responseRagRefs.length,
+            diagnostic_hits_count: responseDiagnosticRefs.length,
+            diagnostic_hit_refs: responseDiagnosticRefs,
             intent: payload.intent ?? null,
             confidence_score: payload.confidence_score ?? null,
             confidence_bucket: payload.confidence_bucket ?? null,
+            query_token_count: payload.query_token_count ?? null,
+            semantic_level: payload.semantic_level ?? null,
             policy_path: payload.policy_path ?? null,
             contradiction_flag: payload.contradiction_flag ?? false,
             web_search_enabled: payload.web_search?.enabled ?? false,

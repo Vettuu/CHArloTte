@@ -118,9 +118,12 @@ return [
         'badge' => ['pass', 'cartellino', 'namebadge', 'butterfly', 'green'],
         'qrcode' => ['code', 'codice', 'qr'],
         // crediti formativi
-        'ecm' => ['crediti', 'formativi', 'formazione', 'fad', 'cme', 'educazione', 'formativa'],
+        'ecm' => ['crediti', 'formativi', 'formazione', 'fad', 'cme', 'educazione', 'formativa', 'E.C.M.', 'educazione continua in medicina'],
+        'scheda di valutazione' => ['scheda della qualità percepita'],
+        'FAD' => ['formazione a distanza'],
         'rfid' => ['fid', 'uhf', 'tag', 'rilevazione'],
         'app' => ['applicazione', 'mobile', 'application', 'mobileapp'],
+        'agenas' => ['AGE.NA.S.'],
         // realtime
         'streaming' => ['webinar', 'live', 'videoconferenza', 'videocall', 'trasmissione', 'diretta', 'webcast', 'broadcast', 'vod'],
         'costi' => ['costo', 'prezzo', 'prezzi', 'preventivo', 'tariffa', 'stima', 'quote', 'spese', 'importo', 'valore', 'cost', 'expenses', 'fees', 'pricing'],

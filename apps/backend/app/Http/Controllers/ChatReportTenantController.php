@@ -13,6 +13,9 @@ class ChatReportTenantController extends Controller
             $list[] = [
                 'id' => $id,
                 'name' => $config['name'] ?? $id,
+                'pipeline' => $config['pipeline'] ?? null,
+                'chat_model' => $config['chat_model'] ?? null,
+                'knowledge_tenant' => $config['knowledge_tenant'] ?? null,
             ];
         }
 
