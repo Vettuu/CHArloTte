@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Chat\ConversationInputResolver;
+use App\Chat\ConversationStateService;
 use App\Http\Requests\ChatRespondRequest;
 use App\Knowledge\KnowledgeSearchService;
 use App\Services\OpenAITextService;
@@ -18,6 +20,8 @@ class ChatRespondController extends Controller
     public function __construct(
         private readonly KnowledgeSearchService $search,
         private readonly OpenAITextService $text,
+        private readonly ConversationStateService $conversationState,
+        private readonly ConversationInputResolver $conversationInput,
     ) {
     }
 
@@ -50,6 +54,10 @@ class ChatRespondController extends Controller
         $model = (string) ($tenantConfig['chat_model'] ?? config('models.pipelines.text.default_model', 'gpt-4.1'));
         $policy = (array) config('models.pipelines.text.policy', []);
         $maxHits = max(1, (int) ($policy['max_hits'] ?? 4));
+        $conversationState = $this->conversationState->load($sessionId, $tenantId);
+        $conversationResolution = $this->conversationInput->resolve($message, $conversationState);
+        $resolvedQuery = trim((string) ($conversationResolution['resolved_query'] ?? $message));
+        $resolvedActiveTopic = $conversationResolution['resolved_active_topic'] ?? null;
 
         $this->writeTextChatLog($textLog, 'info', 'Text chat request received', [
             'session_id' => $sessionId,
@@ -59,13 +67,18 @@ class ChatRespondController extends Controller
             'model' => $model,
             'message_len' => mb_strlen($message),
             'message_preview' => Str::limit($message, 120),
+            'resolved_query' => $resolvedQuery,
+            'input_mode' => $conversationResolution['input_mode'] ?? 'self_contained',
+            'input_is_elliptic' => (bool) ($conversationResolution['input_is_elliptic'] ?? false),
+            'active_topic' => $conversationResolution['active_topic'] ?? null,
+            'resolved_active_topic' => $resolvedActiveTopic,
         ]);
 
-        $intent = $this->detectIntent($message);
-        $queryTokenCount = $this->keywordTokenCount($message);
+        $intent = $this->detectIntent($resolvedQuery);
+        $queryTokenCount = $this->keywordTokenCount($resolvedQuery);
         $minTokensForRatio = max(1, (int) config('knowledge.keyword_min_tokens_for_ratio', 2));
         $shortQuery = $queryTokenCount < $minTokensForRatio;
-        $searchDiagnostics = $this->search->searchWithDiagnostics($message, $maxHits, $knowledgeTenantId);
+        $searchDiagnostics = $this->search->searchWithDiagnostics($resolvedQuery, $maxHits, $knowledgeTenantId);
         $hits = collect($searchDiagnostics['accepted_hits'] ?? [])->values();
         $diagnosticHits = collect($searchDiagnostics['diagnostic_hits'] ?? [])->values();
         $keywordCandidates = collect($searchDiagnostics['keyword_candidates'] ?? [])->values();
@@ -81,7 +94,7 @@ class ChatRespondController extends Controller
         $acceptedHitsSummary = $this->compactHitSummary($ragHitRefs, $ragHitScores);
         $diagnosticHitsSummary = $this->compactHitSummary($diagnosticHitRefs, $diagnosticHitScores);
         $keywordCandidatesSummary = $this->compactKeywordCandidates($keywordCandidates->all());
-        $contradiction = $this->analyzeContradiction($hits, $message);
+        $contradiction = $this->analyzeContradiction($hits, $resolvedQuery);
         $contradictionFlag = (bool) ($contradiction['flag'] ?? false);
         $contradictionType = (string) ($contradiction['type'] ?? 'none');
         $contradictionTopic = (string) ($contradiction['topic'] ?? 'none');
@@ -154,6 +167,13 @@ class ChatRespondController extends Controller
             'keyword_top_total_tokens' => $keywordTopTotalTokens,
             'keyword_top_match_ratio' => $keywordTopMatchRatio,
             'policy_path' => $policyPath,
+            'original_input' => $message,
+            'resolved_query' => $resolvedQuery,
+            'input_mode' => $conversationResolution['input_mode'] ?? 'self_contained',
+            'input_is_elliptic' => (bool) ($conversationResolution['input_is_elliptic'] ?? false),
+            'context_source' => $conversationResolution['context_source'] ?? null,
+            'active_topic' => $conversationResolution['active_topic'] ?? null,
+            'resolved_active_topic' => $resolvedActiveTopic,
             'contradiction_flag' => $contradictionFlag,
             'contradiction_type' => $contradictionType,
             'contradiction_topic' => $contradictionTopic,
@@ -206,6 +226,14 @@ class ChatRespondController extends Controller
                 'web_sources' => [],
             ]);
 
+            $this->persistConversationTurn(
+                sessionId: $sessionId,
+                tenantId: $tenantId,
+                originalInput: $message,
+                resolution: $conversationResolution,
+                replyText: $finalReply,
+            );
+
             return response()->json([
                 'session_id' => $sessionId,
                 'tenant' => [
@@ -227,6 +255,12 @@ class ChatRespondController extends Controller
                 'rag_hits' => 0,
                 'query_token_count' => $queryTokenCount,
                 'short_query' => $shortQuery,
+                'original_input' => $message,
+                'resolved_query' => $resolvedQuery,
+                'input_mode' => $conversationResolution['input_mode'] ?? 'self_contained',
+                'input_is_elliptic' => (bool) ($conversationResolution['input_is_elliptic'] ?? false),
+                'active_topic' => $conversationResolution['active_topic'] ?? null,
+                'resolved_active_topic' => $resolvedActiveTopic,
                 'top_score' => $topScore,
                 'semantic_level' => $semanticLevel,
                 'rag_hit_scores' => [],
@@ -301,6 +335,14 @@ class ChatRespondController extends Controller
                 'web_sources' => [],
             ]);
 
+            $this->persistConversationTurn(
+                sessionId: $sessionId,
+                tenantId: $tenantId,
+                originalInput: $message,
+                resolution: $conversationResolution,
+                replyText: $finalReply,
+            );
+
             return response()->json([
                 'session_id' => $sessionId,
                 'tenant' => [
@@ -322,6 +364,12 @@ class ChatRespondController extends Controller
                 'rag_hits' => $hits->count(),
                 'query_token_count' => $queryTokenCount,
                 'short_query' => $shortQuery,
+                'original_input' => $message,
+                'resolved_query' => $resolvedQuery,
+                'input_mode' => $conversationResolution['input_mode'] ?? 'self_contained',
+                'input_is_elliptic' => (bool) ($conversationResolution['input_is_elliptic'] ?? false),
+                'active_topic' => $conversationResolution['active_topic'] ?? null,
+                'resolved_active_topic' => $resolvedActiveTopic,
                 'top_score' => $topScore,
                 'semantic_level' => $semanticLevel,
                 'rag_hit_scores' => $ragHitScores,
@@ -348,6 +396,8 @@ class ChatRespondController extends Controller
 
         $prompt = $this->buildPrompt(
             query: $message,
+            resolvedQuery: $resolvedQuery,
+            conversationTurns: $conversationState['turns'] ?? [],
             hits: $hits->toArray(),
             supportEmail: $tenantConfig['support_email'] ?? null,
             fallbackMessage: $tenantConfig['fallback_message'] ?? null,
@@ -408,6 +458,13 @@ class ChatRespondController extends Controller
             'diagnostic_hits_count' => $diagnosticHits->count(),
             'keyword_candidates_count' => $keywordCandidates->count(),
             'policy_path' => $policyPath,
+            'original_input' => $message,
+            'resolved_query' => $resolvedQuery,
+            'input_mode' => $conversationResolution['input_mode'] ?? 'self_contained',
+            'input_is_elliptic' => (bool) ($conversationResolution['input_is_elliptic'] ?? false),
+            'context_source' => $conversationResolution['context_source'] ?? null,
+            'active_topic' => $conversationResolution['active_topic'] ?? null,
+            'resolved_active_topic' => $resolvedActiveTopic,
             'contradiction_flag' => $contradictionFlag,
             'contradiction_type' => $contradictionType,
             'contradiction_topic' => $contradictionTopic,
@@ -419,6 +476,14 @@ class ChatRespondController extends Controller
             'web_sources_count' => count($result['sources'] ?? []),
             'web_sources' => collect($result['sources'] ?? [])->pluck('url')->filter()->take(5)->values()->all(),
         ]);
+
+        $this->persistConversationTurn(
+            sessionId: $sessionId,
+            tenantId: $tenantId,
+            originalInput: $message,
+            resolution: $conversationResolution,
+            replyText: $replyText,
+        );
 
         return response()->json([
             'session_id' => $sessionId,
@@ -441,6 +506,12 @@ class ChatRespondController extends Controller
             'rag_hits' => $hits->count(),
             'query_token_count' => $queryTokenCount,
             'short_query' => $shortQuery,
+            'original_input' => $message,
+            'resolved_query' => $resolvedQuery,
+            'input_mode' => $conversationResolution['input_mode'] ?? 'self_contained',
+            'input_is_elliptic' => (bool) ($conversationResolution['input_is_elliptic'] ?? false),
+            'active_topic' => $conversationResolution['active_topic'] ?? null,
+            'resolved_active_topic' => $resolvedActiveTopic,
             'top_score' => $topScore,
             'semantic_level' => $semanticLevel,
             'rag_hit_scores' => $ragHitScores,
@@ -470,6 +541,8 @@ class ChatRespondController extends Controller
      */
     private function buildPrompt(
         string $query,
+        string $resolvedQuery,
+        array $conversationTurns,
         array $hits,
         ?string $supportEmail,
         ?string $fallbackMessage,
@@ -478,6 +551,23 @@ class ChatRespondController extends Controller
         string $intent,
     ): string
     {
+        $conversationContext = collect($conversationTurns)
+            ->take(-3)
+            ->map(function (array $turn): string {
+                $role = ($turn['role'] ?? 'user') === 'assistant' ? 'Assistant' : 'Utente';
+                $message = trim((string) ($turn['message'] ?? ''));
+
+                return $message !== '' ? "{$role}: {$message}" : '';
+            })
+            ->filter()
+            ->implode("\n");
+        $resolvedQueryText = trim($resolvedQuery) !== '' && trim($resolvedQuery) !== trim($query)
+            ? "Query risolta dal sistema: {$resolvedQuery}\n"
+            : '';
+        $historyText = $conversationContext !== ''
+            ? "Contesto conversazionale recente:\n{$conversationContext}\n\n"
+            : '';
+
         if ($policyPath === 'partial_answer_clarify') {
             $context = collect($hits)
                 ->take(2)
@@ -494,7 +584,7 @@ class ChatRespondController extends Controller
                 ? "Contesto disponibile:\n{$context}"
                 : "Contesto disponibile: limitato.";
 
-            return "Domanda utente: {$query}\n\nLa richiesta è troppo breve o ambigua. Fornisci una risposta iniziale prudente (massimo 2 frasi) e poi fai UNA domanda di chiarimento molto mirata per disambiguare l'intento. Non inventare dettagli non presenti nelle fonti.\n\n{$contextText}";
+            return "Domanda utente: {$query}\n{$resolvedQueryText}\n{$historyText}La richiesta è troppo breve o ambigua. Fornisci una risposta iniziale prudente (massimo 2 frasi) e poi fai UNA domanda di chiarimento molto mirata per disambiguare l'intento. Non inventare dettagli non presenti nelle fonti.\n\n{$contextText}";
         }
 
         if ($hits === []) {
@@ -506,7 +596,7 @@ class ChatRespondController extends Controller
                 ? "Puoi usare questo messaggio generale: \"{$fallbackMessage}\"."
                 : 'Spiega che l\'informazione non è presente nei documenti ufficiali.';
 
-            return "Domanda utente: {$query}\n\nContesto ufficiale: nessuna fonte affidabile trovata. {$fallback} {$contact}";
+            return "Domanda utente: {$query}\n{$resolvedQueryText}\n{$historyText}Contesto ufficiale: nessuna fonte affidabile trovata. {$fallback} {$contact}";
         }
 
         $context = collect($hits)
@@ -532,7 +622,60 @@ class ChatRespondController extends Controller
             ? "Se utile, puoi integrare con web search SOLO per esempi visivi/eventi passati su domini consentiti."
             : "Non usare web search per integrare dati core dei servizi, usa prioritariamente il contesto ufficiale RAG.";
 
-        return "Domanda utente: {$query}\n\n{$policyInstructions}\n{$contradictionInstruction}\n{$webIntentInstruction}\n\nUsa solo queste fonti ufficiali per la risposta:\n{$context}";
+        return "Domanda utente: {$query}\n{$resolvedQueryText}\n{$historyText}{$policyInstructions}\n{$contradictionInstruction}\n{$webIntentInstruction}\n\nUsa solo queste fonti ufficiali per la risposta:\n{$context}";
+    }
+
+    /**
+     * @param array<string, mixed> $resolution
+     */
+    private function persistConversationTurn(
+        string $sessionId,
+        string $tenantId,
+        string $originalInput,
+        array $resolution,
+        string $replyText,
+    ): void {
+        $resolvedQuery = trim((string) ($resolution['resolved_query'] ?? $originalInput));
+        $resolvedActiveTopic = $resolution['resolved_active_topic'] ?? null;
+
+        $this->conversationState->appendTurn(
+            $sessionId,
+            $tenantId,
+            'user',
+            $originalInput,
+            [
+                'active_topic' => $resolvedActiveTopic,
+                'last_resolved_query' => $resolvedQuery,
+            ]
+        );
+
+        $this->conversationState->appendTurn(
+            $sessionId,
+            $tenantId,
+            'assistant',
+            $replyText,
+            [
+                'active_topic' => $resolvedActiveTopic,
+                'last_resolved_query' => $resolvedQuery,
+                'last_bot_question' => $this->extractLastQuestion($replyText),
+            ]
+        );
+    }
+
+    private function extractLastQuestion(string $replyText): ?string
+    {
+        $replyText = trim($replyText);
+        if ($replyText === '' || ! str_contains($replyText, '?')) {
+            return null;
+        }
+
+        preg_match_all('/([^?]*\?)/u', $replyText, $matches);
+        $questions = collect($matches[0] ?? [])
+            ->map(fn ($item): string => trim((string) $item))
+            ->filter(fn (string $item): bool => $item !== '')
+            ->values();
+
+        return $questions->isNotEmpty() ? $questions->last() : null;
     }
 
     private function detectIntent(string $query): string

@@ -331,5 +331,25 @@
       "assistenza-tecnica"
     ],
     "summary": "Servizio Lead Retrieval System per espositori e sponsor in congressi/fiere, finalizzato alla raccolta contatti visitatori tramite scansione QR code su badge. Prevede due modalità operative (app dedicata con report in tempo reale o lettori a memoria interna con export a fine evento), utilizzo anche per presenze a workshop/corsi e supporto tecnico in sede; include formule di stima indicative con conferma commerciale finale."
+  },
+    {
+    "id": "charlotte",
+    "file": "charlotte.md",
+    "title": "CHArlotTe, assistente AI per eventi e servizi Echelon",
+    "tags": [
+      "charlotte",
+      "assistente ai",
+      "chatbot eventi",
+      "siti e piattaforme",
+      "totem info point",
+      "self check-in",
+      "guest management",
+      "supporto partecipanti",
+      "app evento",
+      "ricerca semantica",
+      "analisi documenti",
+      "supporto operativo"
+    ],
+    "summary": "Presentazione di CHArlotTe come assistente AI integrabile nei servizi Echelon Italia prima, durante e dopo l’evento. Il documento descrive i principali ambiti applicativi: supporto informativo su siti e piattaforme, analisi di abstract e documenti scientifici, guest management, totem per self check-in, app evento e contesti fieristici, con focus su accesso rapido alle informazioni, riduzione del carico di segreteria e supporto operativo continuativo."
   }
 ]

@@ -25,6 +25,42 @@ return [
             // 600-1000 = bilanciato (default consigliato)
             // 1000+    = risposte più lunghe/complesse ma più costo/latency
             'max_output_tokens' => (int) env('OPENAI_TEXT_MAX_OUTPUT_TOKENS', 800),
+            'conversation' => [
+                // Soglia euristica per considerare un input "breve".
+                'short_input_length' => (int) env('OPENAI_TEXT_CONVERSATION_SHORT_INPUT_LENGTH', 15),
+                // Query brevi ma autosufficienti: non vanno stitchate automaticamente.
+                'standalone_short_terms' => array_values(array_filter(array_map(
+                    'trim',
+                    explode(',', (string) env(
+                        'OPENAI_TEXT_CONVERSATION_STANDALONE_SHORT_TERMS',
+                        'badge,qrcode,qr,rfid,ecm,totem,charlotte,sicam'
+                    ))
+                ))),
+                // Conferme pure: normalmente proseguono il ramo attivo.
+                'confirmation_terms' => array_values(array_filter(array_map(
+                    'trim',
+                    explode(',', (string) env(
+                        'OPENAI_TEXT_CONVERSATION_CONFIRMATION_TERMS',
+                        'si,sì,ok,va bene,perfetto,certo,esatto,confermo,bene,direi di si,direi di sì'
+                    ))
+                ))),
+                // Pattern selettivi: scelgono una variante nel contesto già aperto.
+                'selective_terms' => array_values(array_filter(array_map(
+                    'trim',
+                    explode(',', (string) env(
+                        'OPENAI_TEXT_CONVERSATION_SELECTIVE_TERMS',
+                        'standard,quello,questo,questa,quella,con rfid,con ipad,con qr,con qrcode,con barcode,solo qr,solo qrcode,solo barcode,solo rfid,versione standard'
+                    ))
+                ))),
+                // Pattern tematici: mantengono il topic ma cambiano l’asse della richiesta.
+                'thematic_prefixes' => array_values(array_filter(array_map(
+                    'trim',
+                    explode(',', (string) env(
+                        'OPENAI_TEXT_CONVERSATION_THEMATIC_PREFIXES',
+                        'e i costi,e il costo,e per,e su,e invece,e quindi,e poi,e allora,come funziona,quanto costa,per quanti,per webinar,per eventi grandi'
+                    ))
+                ))),
+            ],
             'policy' => [
                 // Numero massimo di hit RAG passati al modello.
                 // 3-5 in genere bilanciato; valori alti aumentano rumore/token.

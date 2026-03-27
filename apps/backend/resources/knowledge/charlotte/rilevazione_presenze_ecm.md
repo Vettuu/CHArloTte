@@ -76,6 +76,8 @@ Tutte e tre le tipologie di badge rfid possono essere:
 -prestampati nominativi (personalizzati) prima dell'evento e portati in sede disposti in cassettine porta badge, disposti in ordine alfabetico, pronti per essere consegnati ai partecipanti durante l'accredito; se i badge sono prestampati nominativi, in sede di evento si prevede comunque sempre almeno una postazione di stampa di badge per i nuovi iscritti o per delle ristampe di badge.
 -in alternativa a questa soluzione di badge prestampati nominativi, i badge possono essere stampati e personalizzati all'arrivo del partecipante direttamente in sede di evento (al momento dell'accredito) e in questo caso si ha un servizio di "stampa veloce dei badge rfid on-site".
 
+Tutti i badge rfid devono essere indossati correttamente dal partecipante, non devono essere inseriti nella borsa o borsetta, devono essere indossati con apposito laccetto portabadge al collo al momento del passaggio sotto al portale, in ingresso e in uscita.
+
 #### Stampa veloce badge rfid on-site
 Il servizio STAMPA VELOCE DEI BADGE RFID ON-SITE di Echelon Italia è pensato per eventi ECM, congressi ECM e corsi ECM e permette di eliminare le file di attesa dei partecipanti all'arrivo in sede di evento per ritirare il badge RFID. Il servizio deve essere svolto con software di Echelon Italia, eventualmente sincronizzato con delle API con il gestionale del cliente. La stampa del badge può essere effettuata sia con postazioni gestite da personale (hostess e steward) sia con totem multimediali, ossia postazioni self (self-registration).
 Entrambi hanno le seguenti caratteristiche:
