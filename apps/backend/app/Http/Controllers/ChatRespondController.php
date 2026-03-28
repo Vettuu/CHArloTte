@@ -877,7 +877,27 @@ class ChatRespondController extends Controller
         $priceRelativeDelta = max(0.0, min(1.0, (float) config('models.pipelines.text.policy.contradiction.price_relative_delta', 0.20)));
         $normalizedQuery = Str::of($query)->lower()->ascii()->squish()->value();
         $queryPriceTerms = ['costo', 'costi', 'prezzo', 'prezzi', 'euro', 'preventivo', 'tariffa', 'stima', 'quanto costa'];
-        $queryAvailabilityTerms = ['disponibile', 'non disponibile', 'offline', 'online', 'attivo', 'supportato', 'consentito'];
+        $queryAvailabilityTerms = [
+            'disponibile',
+            'non disponibile',
+            'offline',
+            'online',
+            'attivo',
+            'supportato',
+            'consentito',
+            'incluso',
+            'previsto',
+            'si puo',
+            'si può',
+            'si puo usare',
+            'si può usare',
+            'e disponibile',
+            'è disponibile',
+            'e incluso',
+            'è incluso',
+            'e previsto',
+            'è previsto',
+        ];
         $queryAsksPrice = collect($queryPriceTerms)->contains(
             fn (string $term): bool => str_contains($normalizedQuery, $term)
         );
@@ -912,7 +932,6 @@ class ChatRespondController extends Controller
         ];
 
         $positivePatterns = [
-            '/\bsi\b/u',
             '/\bdisponibile\b/u',
             '/\battivo\b/u',
             '/\bsupportato\b/u',
@@ -921,14 +940,12 @@ class ChatRespondController extends Controller
             '/\bconsentito\b/u',
         ];
         $negativePatterns = [
-            '/\bno\b/u',
             '/\bnon\s+disponibile\b/u',
             '/\bnon\s+attivo\b/u',
             '/\bnon\s+supportato\b/u',
             '/\bnon\s+incluso\b/u',
             '/\bnon\s+previsto\b/u',
             '/\bnon\s+consentito\b/u',
-            '/\bnon\b/u',
         ];
 
         $availabilityEvidence = collect();
@@ -982,19 +999,21 @@ class ChatRespondController extends Controller
             }
         }
 
-        $availabilityByTopic = $availabilityEvidence->groupBy('topic');
-        foreach ($availabilityByTopic as $topic => $entries) {
-            $hasPositive = collect($entries)->contains(fn (array $entry): bool => (bool) ($entry['positive'] ?? false));
-            $hasNegative = collect($entries)->contains(fn (array $entry): bool => (bool) ($entry['negative'] ?? false));
-            $evidenceCount = collect($entries)->count();
+        if ($queryAsksAvailability) {
+            $availabilityByTopic = $availabilityEvidence->groupBy('topic');
+            foreach ($availabilityByTopic as $topic => $entries) {
+                $hasPositive = collect($entries)->contains(fn (array $entry): bool => (bool) ($entry['positive'] ?? false));
+                $hasNegative = collect($entries)->contains(fn (array $entry): bool => (bool) ($entry['negative'] ?? false));
+                $evidenceCount = collect($entries)->count();
 
-            if ($hasPositive && $hasNegative && $evidenceCount >= $minEvidence) {
-                return [
-                    'flag' => true,
-                    'type' => 'availability_conflict',
-                    'topic' => (string) $topic,
-                    'evidence_count' => $evidenceCount,
-                ];
+                if ($hasPositive && $hasNegative && $evidenceCount >= $minEvidence) {
+                    return [
+                        'flag' => true,
+                        'type' => 'availability_conflict',
+                        'topic' => (string) $topic,
+                        'evidence_count' => $evidenceCount,
+                    ];
+                }
             }
         }
 

@@ -142,7 +142,10 @@ set mirror:use-pget-n 4
 set ftp:prefer-epsv no
 
 mkdir -p $FTP_REMOTE_DIR/backend
-mirror -R --only-newer --delete ${DRY_ARG} "$BACKEND_DIST" "$FTP_REMOTE_DIR/backend"
+mirror -R --only-newer --delete \
+  --exclude-glob "storage/logs" \
+  --exclude-glob "storage/logs/*" \
+  ${DRY_ARG} "$BACKEND_DIST" "$FTP_REMOTE_DIR/backend"
 
 # Frontend static export va nella root remota (es: /charlotte/)
 # e NON dentro una sottocartella frontend/, così index.html/report.html

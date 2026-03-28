@@ -101,7 +101,7 @@ return [
         'televotatore' => ['keypad', 'televoter', 'votatore', 'telecomando'],
         'votazioni' => ['voto', 'televoto', 'evote', 'vote', 'election', 'elezioni', 'scrutini', 'nomine'],
         //self registration, totem multimediali, self badge printing kiosk, totem self-check-in, totem touch screen
-        'totem' => ['kiosk', 'self', 'registration', 'multimediali', 'badge', 'printing', 'checkin', 'touch', 'screen', 'touchscreen'],
+        'totem' => ['kiosk', 'self', 'registration', 'multimediali', 'checkin', 'touch', 'screen', 'touchscreen'],
         // registrazione partecipanti, segreteria informatizzata, registration desk
         'accredito' => ['registrazione', 'checkin', 'segreteria', 'informatizzata', 'registration', 'desk', 'accreditation'],
         // sito web, piattaforma web
